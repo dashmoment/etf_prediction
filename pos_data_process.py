@@ -41,7 +41,7 @@ import random
 #Single stock
 
 data = stock_1101_np
-train_step = 10
+train_step = 12
 test_step = 5
 all_step = train_step + test_step
 data_size = 50
@@ -72,12 +72,12 @@ weights = {
 }  
 biases = {  
     # (128, )  
-    'in': tf.Variable(tf.constant(0.1, shape=[data.shape[-1], ])),  
+    'in': tf.Variable(tf.constant(0.1, shape=[n_hidden_units, ])),  
     # (10, )  
     'out': tf.Variable(tf.constant(0.1, shape=[n_output, ]))  
 }  
 
-def RNN(X, weights, biases):  
+def encoder(X, weights, biases):  
     # hidden layer for input to cell  
     ########################################  
   
@@ -91,21 +91,34 @@ def RNN(X, weights, biases):
     # X_in ==> (batch, 28 time_steps, n_hidden_units)  
     X_in = tf.reshape(X_in, [-1, train_step, n_hidden_units])  
     
-    cell = tf.contrib.rnn.BasicLSTMCell(n_hidden_units)
+    cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units,reuse=True )
     init_state = cell.zero_state(batch_size, dtype=tf.float32) 
     outputs, final_state = tf.nn.dynamic_rnn(cell, X_in, initial_state=init_state, time_major=False)  
     
     return outputs, final_state
 
+
+cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units,reuse=True )
+enc, state = encoder(x, weights, biases)
+helper = tf.contrib.seq2seq.TrainingHelper(enc[-1], [7])
+decoder = tf.contrib.seq2seq.BasicDecoder(cell, helper, state)
+
+final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
+                    decoder=decoder, output_time_major=False,
+                    impute_finished=True, maximum_iterations=5
+                )
+
+                                                                       
+                                          
 init = tf.global_variables_initializer()  
 with tf.Session() as sess:  
     
     sess.run(init)
-    
     np.random.shuffle(data_all)
+    train, test = np.split(data_all, [train_step], axis=1)
+    train, _ = np.split(train, [batch_size])
     
-    train, test = np.split(data_all, [batch_size])
-    
+    out, state = sess.run(final_outputs, feed_dict={x:train})
     
     
     

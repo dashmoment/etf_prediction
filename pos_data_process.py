@@ -63,6 +63,13 @@ n_hidden_units = 10
 n_output = 3
 batch_size = 16
 
+def default_init(seed):
+    # replica of tf.glorot_uniform_initializer(seed=seed)
+    return layers.variance_scaling_initializer(factor=1.0,
+                                               mode="FAN_AVG",
+                                               uniform=True,
+                                               seed=seed)
+
 # Define weights  
 weights = {  
     # (28, 128)  
@@ -98,17 +105,28 @@ def encoder(X, weights, biases):
     return outputs, final_state
 
 
-cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units,reuse=True )
-enc, state = encoder(x, weights, biases)
-helper = tf.contrib.seq2seq.TrainingHelper(enc[-1], [7])
-decoder = tf.contrib.seq2seq.BasicDecoder(cell, helper, state)
+def decoder(x, state, pred_input, previous_y):
 
-final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
-                    decoder=decoder, output_time_major=False,
-                    impute_finished=True, maximum_iterations=5
-                )
+    predict_days = 5
+    cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units,reuse=True )
+    
+    def cin_fn(time, prev_output, prev_state, array_targets: tf.TensorArray, array_outputs: tf.TensorArray):
+        return time < predict_days
+    
+    def project_fn(tensor):
+        return tf.layers.dense(tensor, 1, name='decoder_output_proj', kernel_initializer=default_init(0))
 
-                                                                       
+    def loop_fn(time, prev_output, prev_state, array_targets: tf.TensorArray, array_outputs: tf.TensorArray):
+        
+        next_input = prev_output
+        output, state = cell(next_input, prev_state)
+        projected_output = project_fn(output)
+        
+        array_outputs = array_outputs.write(time, output)
+        array_targets = array_targets.write(time, projected_output)
+        
+        return time + 1, projected_output, state, array_targets, array_outputs
+        
                                           
 init = tf.global_variables_initializer()  
 with tf.Session() as sess:  

@@ -3,8 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-
+#Customized
 Data/
+model/
+log/
 # C extensions
 *.so
 

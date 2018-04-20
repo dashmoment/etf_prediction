@@ -2,13 +2,26 @@ import numpy as np
 import pandas as pd
 import pickle
 
+verbose_state = True
+
+def print_c(print_content, verbose = verbose_state):
+    
+    if verbose == True:
+        print(print_content)
+
+print_c("Read pickle data")
+
 f = open('./Data/all_data.pkl', 'rb')
 _ = pickle.load(f)
 _ = pickle.load(f)
 process_data = pd.DataFrame(pickle.load(f))
 
+print_c("Finish read pickle data")
+print_c("Process data")
+
+
 #select date
-mask = (process_data.columns >= '20130102') & (process_data.columns < '20180302')
+mask = (process_data.columns >= '20130102') & (process_data.columns < '20130302')
 select_date = process_data.iloc[:,mask]
 
 #drop NA
@@ -31,9 +44,10 @@ stock_1101_02_np_r = np.split(stock_1101_02_np, len(stocks))
 stock_1101_02_np_r = np.dstack(stock_1101_02_np_r)
 
 #Check process is correct
-print("single stock == multiple_stock: ",np.equal(stock_1101_np, stock_1101_02_np_r[:,:,0]).all())
+print_c("single stock == multiple_stock: ",np.equal(stock_1101_np, stock_1101_02_np_r[:,:,0]).all())
 
 #Prepare for rnn
+print_c("Start build RNN model")
 
 import tensorflow as tf
 import random
@@ -98,19 +112,19 @@ def encoder(X, weights, biases):
     # X_in ==> (batch, 28 time_steps, n_hidden_units)  
     X_in = tf.reshape(X_in, [-1, train_step, n_hidden_units])  
     
-    cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units,reuse=True )
+    cell = tf.contrib.rnn.BasicLSTMCell(n_hidden_units)
     init_state = cell.zero_state(batch_size, dtype=tf.float32) 
     outputs, final_state = tf.nn.dynamic_rnn(cell, X_in, initial_state=init_state, time_major=False)  
     
     return outputs, final_state
 
 
-def decoder(x, state, pred_input, previous_y):
+def decoder(previous_y, state):
 
     predict_days = 5
-    cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units,reuse=True )
+    cell = tf.contrib.rnn.BasicLSTMCell(n_hidden_units)
     
-    def cin_fn(time, prev_output, prev_state, array_targets: tf.TensorArray, array_outputs: tf.TensorArray):
+    def cond_fn(time, prev_output, prev_state, array_targets: tf.TensorArray, array_outputs: tf.TensorArray):
         return time < predict_days
     
     def project_fn(tensor):
@@ -126,8 +140,22 @@ def decoder(x, state, pred_input, previous_y):
         array_targets = array_targets.write(time, projected_output)
         
         return time + 1, projected_output, state, array_targets, array_outputs
+
+    loop_init = [tf.constant(0, dtype=tf.int32), #time
+                     tf.expand_dims(previous_y, -1), 
+                     state,
+                     tf.TensorArray(dtype=tf.float32, size=predict_days),
+                     tf.TensorArray(dtype=tf.float32, size=predict_days) ]
         
-                                          
+    _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn, loop_init)
+
+
+    return targets_ta, outputs_ta
+
+
+enc, state  = encoder(x, weights, biases)
+dec, raw_dec = decoder(enc[:,-1], state)
+
 init = tf.global_variables_initializer()  
 with tf.Session() as sess:  
     
@@ -136,7 +164,11 @@ with tf.Session() as sess:
     train, test = np.split(data_all, [train_step], axis=1)
     train, _ = np.split(train, [batch_size])
     
-    out, state = sess.run(final_outputs, feed_dict={x:train})
+    out, state = sess.run([enc, state], feed_dict={x:train})
+
+    print_c('============================')
+    print_c('{},{}'.format(np.shape(out), np.shape(state)))
+
     
     
     

@@ -1,14 +1,10 @@
-class configuration:
-
-	def __init__(self):
-
-		self.verbose_state = True
-		self.start_time = '20130102'
-		self.end_time = '20140302'
-		self.toy() #Set default configuration
+baseline = {
+				train_step = 10
+				predict_step = 5
+				batch_size = 16
 	
-	def toy(self):
+			}
 
-		self.verbose_state = True
-		self.start_time = '20130102'
-		self.end_time = '20150302'
+
+def config(conf):
+	return eval(conf)

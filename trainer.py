@@ -5,7 +5,7 @@ import model_zoo as mz
 import netFactory as nf
 import numpy as np
 
-filepath = './data/all_data.pkl'
+filepath = './Data/all_data.pkl'
 
 train_step = 10
 predict_step = 5

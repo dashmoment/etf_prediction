@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 
-def load_ckpt(self, checkpoint_dir, ckpt_name=""):
+def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):
         """
         Load the checkpoint. 
         According to the scale, read different folder to load the models.
@@ -16,11 +16,12 @@ def load_ckpt(self, checkpoint_dir, ckpt_name=""):
 #            model_dir = ckpt_name
 #            
 #        checkpoint_dir = os.path.join(checkpoint_dir, model_dir)    
+        print(checkpoint_dir)
         ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
-        print(checkpoint_dir, ckpt.model_checkpoint_path)
+        
         if ckpt  and ckpt.model_checkpoint_path:
             ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
-            self.saver.restore(self.sess, os.path.join(checkpoint_dir, ckpt_name))
+            saver.restore(sess, os.path.join(checkpoint_dir, ckpt_name))
         
             return True
         
@@ -76,7 +77,7 @@ class sessionWrapper:
         Nbatch = len(train_set)//batch_size
         with self.sess as sess:
             
-            if load_ckpt(self.checkpoint_dir, self.ckpt_name):
+            if load_ckpt(self.saver, sess, self.checkpoint_dir, self.ckpt_name):
                 print(" [*] Load SUCCESS")
             else:
                 print(" [!] Load failed...")

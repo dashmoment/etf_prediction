@@ -44,7 +44,7 @@ def attention_lstm_cell(memory, n_lstm_hidden_units, n_att_hidden_units, att_typ
 	return decoder_cell
 
 
-def decoder(decoder_cell, previous_y, state, predict_time_step, train):
+def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train = True, is_eval = 2):
 
     def default_init(seed):
     # replica of tf.glorot_uniform_initializer(seed=seed)
@@ -87,19 +87,21 @@ def decoder(decoder_cell, previous_y, state, predict_time_step, train):
         return time + 1, projected_output, state, array_targets, array_outputs
 
 
-    if train:
+    if is_train:
         #decoder_cell.zero_state(16, tf.float32).clone(cell_state=state)
         loop_init_train = [	tf.constant(0, dtype=tf.int32), #time
 	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
-	                    		decoder_cell.zero_state(8, tf.float32).clone(cell_state=state),
+	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
 	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
 	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_train)
 
     else:
+        
+            
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
 	                    		project_fn(previous_y), 
-	                    		decoder_cell.zero_state(8, tf.float32).clone(cell_state=state),
+	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
 	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
 	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_inference)

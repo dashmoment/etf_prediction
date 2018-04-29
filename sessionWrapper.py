@@ -52,8 +52,8 @@ def get_batch(data_set, train_step,batch_size, cur_index):
 
 class sessionWrapper:
 
-    def __init__(	self, input_p:tf.placeholder, label_p:tf.placeholder, is_train:tf.placeholder, train_step,
-					loss, train_op, train_summary, test_summary,
+    def __init__(	self, input_p:tf.placeholder, label_p:tf.placeholder, is_train:tf.placeholder,
+					train_step, loss, train_op, train_summary, test_summary,
 					checkpoint_dir, ckpt_name):
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
@@ -70,6 +70,7 @@ class sessionWrapper:
         self.test_summary = test_summary
         self.checkpoint_dir = checkpoint_dir
         self.ckpt_name = ckpt_name
+        
 
     def run(self, batch_size, train_set, test_set, epoch = 0, Nepoch = 1000):
 
@@ -92,14 +93,14 @@ class sessionWrapper:
                     train_data, train_label = get_batch(train_set, self.train_step, batch_size, batch_index)
                     sess.run(self.optimizer, feed_dict={self.x:train_data, self.y:train_label, self.is_train:True})
 
-                if epoch%11 == 0:
+                if epoch%100 == 0:
                     train_data, train_label = get_batch(train_set, self.train_step, batch_size, 0)
                     l2loss, train_sum =  sess.run([self.loss, self.train_summary], feed_dict={self.x:train_data, self.y:train_label, self.is_train:False})
                     self.summary_writer.add_summary(train_sum, epoch)
                     save_ckpt(self.saver, sess, self.checkpoint_dir, self.ckpt_name, epoch)
                     pbar.set_description('train l2loss: {}'.format(l2loss))    
 				
-                elif epoch%20 == 0:
+                elif epoch%500 == 0:
                     val_data, val_label = get_batch(test_set, self.train_step, batch_size, 0)
                     l2loss, val_sum =  sess.run([self.loss, self.test_summary], feed_dict={self.x: val_data, self.y: val_label, self.is_train:False})         
                     self.summary_writer.add_summary(val_sum, epoch)

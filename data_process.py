@@ -80,7 +80,10 @@ class train_validation_generaotr:
         pivot = 0
         N_train = cut_len//(1+2*predict_windows*train_val_ratio)
         N_val = (cut_len - N_train)//(2*predict_windows)
-        switch_pivot = N_train//N_val
+        
+       
+        if N_val < 1: switch_pivot = 0.1
+        else: switch_pivot = N_train//N_val
    
         while idx < cut_len:
               
@@ -96,8 +99,8 @@ class train_validation_generaotr:
                 pivot += 1
                 idx += 1
                 
-        train = np.stack(train)
-        validataion = np.stack(validataion)
+        if len(train) > 0: train = np.stack(train)
+        if len(validataion) > 0: validataion = np.stack(validataion)
     
         return train, validataion
         

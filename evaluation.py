@@ -34,15 +34,12 @@ def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):
 batch_size = evalSet.shape[0]
 n_linear_hidden_units = c['n_linear_hidden_units']
 n_lstm_hidden_units =  c['n_lstm_hidden_units']
-n_attlstm_hidden_units = c['n_attlstm_hidden_units']
-n_att_hidden_units =  c['n_att_hidden_units']
 
 
 x = tf.placeholder(tf.float32, [None, c['input_step'], evalSet.shape[-1]]) 
 y = tf.placeholder(tf.float32, [None, c['predict_step']]) 
 isTrain = tf.placeholder(tf.bool, ())  
 predicted = mz.baseline_LuongAtt_lstm(	x, batch_size, y, n_linear_hidden_units, n_lstm_hidden_units,
-										n_attlstm_hidden_units, n_att_hidden_units, 
 										isTrain, reuse = False)
 
 
@@ -63,7 +60,7 @@ with tf.Session() as sess:
                 
     train, label = np.split(evalSet, [c['input_step']], axis=1)    
     predict = sess.run(predicted, feed_dict={x:train, y:label[:,:,-1], isTrain:False})
-    loss, plain_scores, w_scores = sess.run([abs_loss, score, mean_score], feed_dict={x:train, y:label[:,:,-1], isTrain:False})
+    loss, plain_scores, mean_w_scores = sess.run([abs_loss, score, mean_score], feed_dict={x:train, y:label[:,:,-1], isTrain:False})
                 
                 
                 

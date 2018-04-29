@@ -19,8 +19,7 @@ y = tf.placeholder(tf.float32, [None, c['predict_step']])
 isTrain = tf.placeholder(tf.bool, ())  
 
 decoder_output = mz.baseline_LuongAtt_lstm(	x, c['batch_size'], y, c['n_linear_hidden_units'], c['n_lstm_hidden_units'],
-											c['n_attlstm_hidden_units'], c['n_att_hidden_units'], 
-											isTrain, reuse = False)
+											isTrain, reuse = tf.AUTO_REUSE)
 
 loss = tf.losses.mean_squared_error(y, decoder_output)
 train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
@@ -38,7 +37,7 @@ sess = sesswrapper.sessionWrapper(	x, y, isTrain, c['input_step'],
 									loss, train_op, merged_summary_train, 
 									merged_summary_val, './model/test', 'test.ckpt')
 
-sess.run(c['batch_size'], train, validation)
+sess.run(c['batch_size'], train, validation, 0, 100000)
 
 
 

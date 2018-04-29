@@ -6,8 +6,7 @@ def encoder(inputs, n_linear_hidden_units, n_lstm_hidden_units, batch):
     weight =  tf.get_variable("w_encoder", [nFeatures, n_linear_hidden_units], initializer = tf.zeros_initializer())
     biases =  tf.get_variable('b_encoder', [n_linear_hidden_units, ], initializer = tf.constant_initializer(0.1))
     
-    
-                                               
+                                             
     # hidden layer for input to cell  
     ########################################  
   
@@ -28,23 +27,23 @@ def encoder(inputs, n_linear_hidden_units, n_lstm_hidden_units, batch):
     
     return outputs, final_state
 
-def attention_lstm_cell(memory, n_lstm_hidden_units, n_att_hidden_units, att_type = 'Luong'):
+def attention_lstm_cell(memory, n_lstm_hidden_units, att_type = 'Luong'):
 
 	cell = tf.contrib.rnn.BasicLSTMCell(n_lstm_hidden_units)
 
 	if att_type == 'Luong':
-		attention_mechanism = tf.contrib.seq2seq.LuongAttention(n_att_hidden_units, memory)
+		attention_mechanism = tf.contrib.seq2seq.LuongAttention(n_lstm_hidden_units, memory)
 	else:
-		attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(n_att_hidden_units, memory)
+		attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(n_lstm_hidden_units, memory)
 
 	decoder_cell = tf.contrib.seq2seq.AttentionWrapper(	cell,
-        												attention_mechanism,
-       													attention_layer_size=n_att_hidden_units)
+            												attention_mechanism,
+       													attention_layer_size=n_lstm_hidden_units)
 
 	return decoder_cell
 
 
-def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train = True, is_eval = 2):
+def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train = True):
 
     def default_init(seed):
     # replica of tf.glorot_uniform_initializer(seed=seed)

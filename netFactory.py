@@ -87,27 +87,10 @@ def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train=
         array_targets = array_targets.write(time, projected_output)
         
         return time + 1, projected_output, state, array_targets, array_outputs
-    
-    
-#    def loop_init_train():
-#        return  [	tf.constant(0, dtype=tf.int32), #time
-#	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
-#	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
-#	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
-#	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
-#        
-#    def loop_init_inference():
-#        return  [	tf.constant(0, dtype=tf.int32), #time
-#	                    		project_fn(previous_y), 
-#	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
-#	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
-#	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
 
 
     if is_train:
-#        decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state)
-        
-                  
+                        
         loop_init_train =   [	tf.constant(0, dtype=tf.int32), #time
     	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
     	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
@@ -116,8 +99,7 @@ def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train=
         
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_train)
 
-    else:
-        
+    else:      
   
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
     	                    		project_fn(previous_y), 
@@ -126,8 +108,6 @@ def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train=
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_inference)
         
-   
-
     targets = targets_ta.stack()
     targets = tf.squeeze(targets, axis=-1)
     targets = tf.transpose(targets, (1,0))

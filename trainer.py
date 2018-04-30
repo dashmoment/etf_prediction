@@ -5,6 +5,10 @@ import data_process as dp
 import model_zoo as mz
 
 
+def l2loss(x,y):   
+    loss = tf.reduce_mean(tf.squared_difference(x, y))
+    return loss 
+
 c = conf.config('baseline').config['common']
 
 tv_gen = dp.train_validation_generaotr()
@@ -18,8 +22,8 @@ y = tf.placeholder(tf.float32, [None, c['predict_step']])
 decoder_output = mz.model_zoo(c, x,y, True).decoder_output
 decoder_output_eval = mz.model_zoo(c, x,y, False, True).decoder_output
 
-loss = tf.reduce_mean(tf.squared_difference(decoder_output, y))
-loss_eval = tf.reduce_mean(tf.squared_difference(decoder_output_eval, y))
+loss = l2loss(decoder_output, y)
+loss_eval = l2loss(decoder_output_eval, y)
 train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
 
 with tf.name_scope('train_summary'):

@@ -9,10 +9,8 @@ class model_zoo:
         self.inputs = inputs
         self.y_label = y_label
         self.is_train =  is_train
-        self.reuse = reuse
-        
-        self.decoder_output = None
-        
+        self.reuse = reuse    
+        self.decoder_output = None    
         self.get_config(self.conf['model'])
         
     def get_config(self, conf_name):
@@ -34,8 +32,7 @@ class model_zoo:
                 decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units']) 
                 #decoder_cell = tf.contrib.rnn.BasicLSTMCell(self.conf['n_lstm_hidden_units'])
             
-            with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):
-                
+            with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):               
                 if self.is_train:
                     self.decoder_output, _  = nf.decoder(self.conf['batch_size'], decoder_cell, self.y_label , final_state, self.conf['predict_step'], is_train = True)
                 else:

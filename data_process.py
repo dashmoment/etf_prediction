@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pickle
+from tqdm import tqdm
 
 verbose_state = True
 
@@ -44,8 +45,9 @@ class train_validation_generaotr:
         
         #drop NA
         data = data.dropna()
-    
-        for c in data.columns:    
+        
+        pbar = tqdm(data.columns)
+        for c in pbar:    
             for idx in data[c].index:
                 data[c].loc[idx] = data[c].loc[idx].drop(['ID', 'Date','name','trade']).tolist()
                 
@@ -80,24 +82,32 @@ class train_validation_generaotr:
         pivot = 0
         N_train = cut_len//(1+2*predict_windows*train_val_ratio)
         N_val = (cut_len - N_train)//(2*predict_windows)
-        switch_pivot = N_train//N_val
+        
+       
+        if N_val < 1: switch_pivot = 0.1
+        else: switch_pivot = N_train//N_val
+        
+        pbar_s = tqdm(cut_len)
    
         while idx < cut_len:
               
             if pivot == switch_pivot:      
                 pivot = 0
                 idx += predict_windows - 1
+                pbar_s.update(predict_windows - 1)
                 
                 if total_len < (idx + sample_window): break
                 validataion.append(data[idx:idx+sample_window])
                 idx += predict_windows
+                pbar_s.update(predict_windows)
             else:
                 train.append(data[idx:idx+sample_window])
                 pivot += 1
-                idx += 1
+                idx += 1       
+                pbar_s.update(1)
                 
-        train = np.stack(train)
-        validataion = np.stack(validataion)
+        if len(train) > 0: train = np.stack(train)
+        if len(validataion) > 0: validataion = np.stack(validataion)
     
         return train, validataion
         

@@ -43,7 +43,10 @@ def attention_lstm_cell(memory, n_lstm_hidden_units, att_type = 'Luong'):
 	return decoder_cell
 
 
-def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train = True):
+def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train=True):
+    
+    
+    dense_for_project = tf.layers.Dense(1, name="output_project")
 
     def default_init(seed):
     # replica of tf.glorot_uniform_initializer(seed=seed)
@@ -56,7 +59,7 @@ def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train 
         return time < predict_time_step
     
     def project_fn(tensor):
-        d_layer = tf.layers.dense(tensor, 1,  kernel_initializer=default_init(0))
+        d_layer =dense_for_project(tensor)
         return d_layer
 
 
@@ -84,26 +87,45 @@ def decoder(batch, decoder_cell, previous_y, state, predict_time_step, is_train 
         array_targets = array_targets.write(time, projected_output)
         
         return time + 1, projected_output, state, array_targets, array_outputs
+    
+    
+#    def loop_init_train():
+#        return  [	tf.constant(0, dtype=tf.int32), #time
+#	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
+#	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+#	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
+#	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
+#        
+#    def loop_init_inference():
+#        return  [	tf.constant(0, dtype=tf.int32), #time
+#	                    		project_fn(previous_y), 
+#	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+#	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
+#	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
 
 
     if is_train:
-        #decoder_cell.zero_state(16, tf.float32).clone(cell_state=state)
-        loop_init_train = [	tf.constant(0, dtype=tf.int32), #time
-	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
-	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
-	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
-	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
+#        decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state)
+        
+                  
+        loop_init_train =   [	tf.constant(0, dtype=tf.int32), #time
+    	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
+    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+    	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
+    	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
+        
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_train)
 
     else:
         
-            
+  
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
-	                    		project_fn(previous_y), 
-	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
-	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
-	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
+    	                    		project_fn(previous_y), 
+    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+    	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
+    	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_inference)
+        
    
 
     targets = targets_ta.stack()

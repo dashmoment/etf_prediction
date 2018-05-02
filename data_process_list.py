@@ -131,20 +131,28 @@ class train_validation_generaotr:
 
 
 #Simple Demo
-filepath = '/home/ubuntu/dataset/etf_prediction/feature_data.pkl'
-tv_gen = train_validation_generaotr()
+filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+#tv_gen = train_validation_generaotr()
 
 f = pd.read_pickle(filepath)
+m = pickle.dump(filepath)
 
 #Single Stock
 
-s = tv_gen._selectData2array(f, ['1101'], ['20130302', '20130502'])
-t,v = tv_gen._split_train_val(s, 10,5,0.25)
+#s = tv_gen._selectData2array(f, ['1101'], ['20130302', '20130502'])
+#t,v = tv_gen._split_train_val(s, 10,5,0.25)
 #train, val = tv_gen.generate_train_val_set(filepath, ['1101'], 10, 5, 0.25, ['20130302', '20130502'])
 #Multiple Stock
 #train_mul, val_mul = tv_gen.generate_train_val_set(filepath, ['1101','1102'], 10, 5, 0.25, ['20130302', '20130502'])
 
-    
+s = open('/home/ubuntu/dataset/etf_prediction/all_mata_data.pkl', 'rb')
+pickle.load(s)
+pickle.load(s)
+pickle.load(f)
+fl = pickle.load(s)
+fl =  pickle.load(s)  
+
+f.close()
 
 
 

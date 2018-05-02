@@ -58,7 +58,20 @@ def get_batch_cls(data_set, train_step,batch_size, cur_index):
 
     return train, label
 
-get_batch = get_batch_cls
+def get_batch_2in1(data_set, train_step,batch_size, cur_index):
+    
+    #data_set: [None, time_step, features ]
+    #batch_idx: index of batch start point
+
+    batch =  data_set[cur_index:cur_index + batch_size, :, :]
+    train, label = np.split(batch, [train_step], axis=1)
+    
+    train = train[:,:,0:4]
+    label = label[:,:,3:7]
+
+    return train, label
+
+get_batch = get_batch_2in1
 
 class sessionWrapper:
 

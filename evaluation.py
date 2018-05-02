@@ -5,10 +5,12 @@ import os
 import model_zoo as mz
 import numpy as np
 
-c = conf.config('sample').config['common']
+c = conf.config('baseline').config['common']
 
 tv_gen = dp.train_validation_generaotr()
-evalSet, _  = tv_gen.generate_train_val_set(c['src_file_path'] , ['1101'], c['input_step'], c['predict_step'], 0.0, c['eval_period'])
+evalSet, _  = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], 0.0, c['eval_period'])
+
+c['batch_size'] = len(evalSet)
 
 def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):
         """
@@ -39,9 +41,7 @@ n_lstm_hidden_units =  c['n_lstm_hidden_units']
 x = tf.placeholder(tf.float32, [None, c['input_step'], evalSet.shape[-1]]) 
 y = tf.placeholder(tf.float32, [None, c['predict_step']]) 
 isTrain = tf.placeholder(tf.bool, ())  
-predicted = mz.baseline_LuongAtt_lstm(	x, batch_size, y, n_linear_hidden_units, n_lstm_hidden_units,
-										isTrain, reuse = False)
-
+predicted = mz.model_zoo(c, x,y, False).decoder_output
 
 abs_loss = tf.abs(predicted-y)
 weighted_array = [0.1,0.15,0.2,.025,0.3]
@@ -57,10 +57,11 @@ with tf.Session() as sess:
         print(" [*] Load SUCCESS")
     else:
         print(" [!] Load failed...")
-                
+        
+   
     train, label = np.split(evalSet, [c['input_step']], axis=1)    
     predict = sess.run(predicted, feed_dict={x:train, y:label[:,:,-1], isTrain:False})
-    loss, plain_scores, mean_w_scores = sess.run([abs_loss, score, mean_score], feed_dict={x:train, y:label[:,:,-1], isTrain:False})
+    loss, plain_scores, w_scores ,mean_w_scores = sess.run([abs_loss,  score, w_score, mean_score], feed_dict={x:train, y:label[:,:,-1], isTrain:False})
                 
                 
                 

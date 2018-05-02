@@ -54,16 +54,43 @@ class config:
         #Data Attributes
         conf['src_file_path'] = './Data/all_data.pkl'
         conf['input_stocks'] = ['1101']
-        conf['train_period'] =  ['20130102', '20170311']
-        conf['eval_period'] =  ['20170311', '20180311']
+        conf['train_period'] =  ['20130102', '20130811']
+        conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
         conf['model'] = 'baseline_LuongAtt_lstm'
-        conf['checkpoint_dir'] = './model/baseline_reg'
+        conf['checkpoint_dir'] = './model/baseline_reg_dropout'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 30
         conf['predict_step'] = 5
         conf['batch_size'] = 16
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 16
+        conf['n_lstm_hidden_units'] = 32
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 101
+        conf['evaluation_epoch'] = 500
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
+        
+    def baseline_cls(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        conf['src_file_path'] = './Data/all_data.pkl'
+        conf['input_stocks'] = ['1101']
+        conf['train_period'] =  ['20130102', '20130711']
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['model'] = 'baseline_LuongAtt_lstm_cls'
+        conf['checkpoint_dir'] = './model/baseline_reg_dropout_cls'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 10
+        conf['predict_step'] = 5
+        conf['batch_size'] = 8
         conf['train_eval_ratio'] = 0.2 
         conf['n_linear_hidden_units'] = 16
         conf['n_lstm_hidden_units'] = 32

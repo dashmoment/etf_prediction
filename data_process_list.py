@@ -1,7 +1,11 @@
 import numpy as np
 import pandas as pd
-import pickle
+import _pickle as pickle
 from tqdm import tqdm
+
+import sys
+import pandas.core.indexes 
+sys.modules['pandas.indexes'] = pandas.core.indexes
 
 verbose_state = True
 
@@ -21,7 +25,11 @@ class train_validation_generaotr:
         f = open(filepath, 'rb')
         pickle.load(f)
         pickle.load(f)
-        process_data = pd.DataFrame(pickle.load(f))
+        pickle.load(f)
+        pickle.load(f)
+        pickle.load(f)
+        process_data = pickle.load(f)
+        #process_data = pd.DataFrame(pickle.load(f))
     
         print_c("Finish read pickle data")
         
@@ -46,15 +54,14 @@ class train_validation_generaotr:
         #drop NA
         data = data.dropna()
         
-        pbar = tqdm(data.columns)
-        
-        for c in pbar:    
-            for idx in data[c].index:
-                data[c].loc[idx] = data[c].loc[idx].drop(['ID', 'Date','name','trade']).tolist()
+#        pbar = tqdm(data.columns)
+#        for c in pbar:    
+#            for idx in data[c].index:
+#                data[c].loc[idx] = data[c].loc[idx].drop(['ID', 'Date','name','trade']).tolist()
                 
-        stock = data.loc[stock_IDs]
-        stock = np.hstack(np.array(stock))
-        stock = np.vstack(stock)
+        stock = data.iloc[0]
+        stock = np.vstack(np.array(stock))
+#        stock = np.vstack(stock)
         
         if len(stock_IDs) > 1:
             stock = np.split(stock, len(stock_IDs))
@@ -122,15 +129,21 @@ class train_validation_generaotr:
         
         return train, valid
 
-'''
+
 #Simple Demo
-filepath = './Data/all_data.pkl'
+filepath = '/home/ubuntu/dataset/etf_prediction/feature_data.pkl'
 tv_gen = train_validation_generaotr()
+
+f = pd.read_pickle(filepath)
+
 #Single Stock
-train, val = tv_gen.generate_train_val_set(filepath, ['1101'], 10, 5, 0.25, ['20130302', '20130502'])
+
+s = tv_gen._selectData2array(f, ['1101'], ['20130302', '20130502'])
+t,v = tv_gen._split_train_val(s, 10,5,0.25)
+#train, val = tv_gen.generate_train_val_set(filepath, ['1101'], 10, 5, 0.25, ['20130302', '20130502'])
 #Multiple Stock
-train_mul, val_mul = tv_gen.generate_train_val_set(filepath, ['1101','1102'], 10, 5, 0.25, ['20130302', '20130502'])
-'''
+#train_mul, val_mul = tv_gen.generate_train_val_set(filepath, ['1101','1102'], 10, 5, 0.25, ['20130302', '20130502'])
+
     
 
 

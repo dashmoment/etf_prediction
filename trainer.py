@@ -13,18 +13,17 @@ c = conf.config('baseline').config['common']
 
 tv_gen = dp.train_validation_generaotr()
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
-#train, validation = tv_gen.generate_train_val_set(filepath, ['0050'], train_step, predict_step, 0.15, None)
 
 x = tf.placeholder(tf.float32, [None, c['input_step'], train.shape[-1]]) 
 y = tf.placeholder(tf.float32, [None, c['predict_step']]) 
-#isTrain = tf.placeholder(tf.bool, ())  
 
-decoder_output = mz.model_zoo(c, x,y, True).decoder_output
-decoder_output_eval = mz.model_zoo(c, x,y, False, True).decoder_output
+decoder_output = mz.model_zoo(c, x,y, dropout = 0.6, is_train = True).decoder_output
+decoder_output_eval = mz.model_zoo(c, x,y, dropout = 1.0, is_train = False).decoder_output
 
 loss = l2loss(decoder_output, y)
 loss_eval = l2loss(decoder_output_eval, y)
-train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
+#train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
+train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('l2loss', loss, collections=['train'])

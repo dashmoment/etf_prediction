@@ -13,22 +13,23 @@ def cross_entropy_loss(x,y):
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=x))
     return loss 
 
-c = conf.config('baseline_cls').config['common']
+c = conf.config('baseline_cnn_cls').config['common']
 
 tv_gen = dp.train_validation_generaotr()
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
 
 import numpy as np
-train_dummies_label = np.ones((train.shape[0],train.shape[1],3))*0.3
-eval_dummies_label = np.ones((validation.shape[0], validation.shape[1], 3))*0.3
+train_dummies_label = np.ones((train.shape[0],train.shape[1],3, 2))*0.3
+eval_dummies_label = np.ones((validation.shape[0], validation.shape[1], 3, 2))*0.3
 
 train = np.dstack([train, train_dummies_label])
 validation = np.dstack([validation, eval_dummies_label])
 
 features = 4
 labels = 3
+stocks = 2
 
-x = tf.placeholder(tf.float32, [None, c['input_step'], features]) 
+x = tf.placeholder(tf.float32, [None, c['input_step'], features, stocks]) 
 y = tf.placeholder(tf.float32, [None, c['predict_step'], labels]) 
 
 decoder_output = mz.model_zoo(c, x,y, dropout = 0.6, is_train = True).decoder_output
@@ -59,8 +60,8 @@ with tf.name_scope('validatin_summary'):
 with tf.Session() as sess:
     
     sess.run(tf.global_variables_initializer())
-    predict = sess.run([accuracy_train, accuracy_eval, decoder_output, decoder_output_eval], feed_dict={x:train[0:8, 0:10, 0:4], y:train[0:8, 10:15, 4:7]})
-    res = sess.run(decoder_output_eval, feed_dict={x:train[0:8, 0:10, 0:4], y:train[0:8, 10:15, 4:7]})
+    predict = sess.run([accuracy_train, accuracy_eval, decoder_output, decoder_output_eval], feed_dict={x:train[0:8, 0:10, 0:4], y:train[0:8, 10:15, 4:7,0]})
+    res = sess.run(decoder_output_eval, feed_dict={x:train[0:8, 0:10, 0:4], y:train[0:8, 10:15, 4:7,0]})
 
 #    sess = sesswrapper.sessionWrapper(	c, x, y, accuracy_eval, c['input_step'],
 #    									loss, train_op, merged_summary_train, 

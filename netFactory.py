@@ -86,9 +86,15 @@ def fc_layer(inputs, out_shape, name,initializer=tf.contrib.layers.xavier_initia
     return net
 
 
-def encoder(inputs, n_linear_hidden_units, n_lstm_hidden_units, batch):
+def encoder(inputs, n_linear_hidden_units, n_lstm_hidden_units, batch, time_step = None, nFeatures = None):
 	
-    _, timeStep, nFeatures = inputs.shape
+    if time_step == None:
+        _, timeStep, nFeatures = inputs.shape
+    
+    else:
+        timeStep = time_step
+        nFeatures = nFeatures
+    
     weight =  tf.get_variable("w_encoder", [nFeatures, n_linear_hidden_units], initializer = tf.zeros_initializer())
     biases =  tf.get_variable('b_encoder', [n_linear_hidden_units, ], initializer = tf.constant_initializer(0.1))
     
@@ -255,7 +261,7 @@ def decoder_cls(batch, decoder_cell, project_fn, previous_y, state, predict_time
     	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
-        _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_inference)
+        _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_inference, loop_init_inference)
         
     targets = targets_ta.stack()
 #    targets = tf.squeeze(targets, axis=-1)
@@ -322,7 +328,7 @@ def decoder_2in_1(batch, decoder_cell, project_fn, previous_y, state, predict_ti
     	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
-        _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_inference)
+        _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_inference, loop_init_inference)
         
     targets = targets_ta.stack()
 #    targets = tf.squeeze(targets, axis=-1)
@@ -336,17 +342,16 @@ def decoder_2in_1(batch, decoder_cell, project_fn, previous_y, state, predict_ti
 
 def cnn_encoder_vgg(inputs, dropout, is_training):
     
-     with tf.variable_scope("attention"):
+    #inputs: [batch, times, features, stocks]
+    
+     with tf.variable_scope("cnn_encoder", reuse=tf.AUTO_REUSE):
                     
-            net = convolution_layer(inputs, [1,3,128], [1,1,1,1],name="conv2-1")
-            net = convolution_layer(net, [1,3,128], [1,1,1,1],name="conv2-2")
-            net = convolution_layer(net, [1,3,256], [1,1,1,1],name="conv3-1")
-            net = convolution_layer(net, [1,3,256], [1,1,1,1],name="conv3-2")
-            net = convolution_layer(net, [1,3,512], [1,1,1,1],name="conv4-1")
-            net = convolution_layer(net, [1,3,512], [1,1,1,1],name="conv4-2")
-            net = tf.nn.max_pool(net, ksize=[1, 1, 3, 1],strides=[1, 1, 2, 1], padding='SAME')
-           
-            net = convolution_layer(net, [1,3,512], [1,1,1,1],name="conv4-2")
+            net = convolution_layer(inputs, [1,3,128], [1,1,1,1],name="conv2-1")        
+            net = tf.nn.max_pool(net, ksize=[1, 1, 3, 1],strides=[1, 1, 2, 1], padding='SAME')       
+            net = convolution_layer(net, [1,3,1], [1,1,1,1],name="conv4-2")
+          
+            
+     return net
                   
                     
     

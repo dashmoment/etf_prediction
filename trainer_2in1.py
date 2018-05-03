@@ -1,7 +1,8 @@
 import tensorflow as tf
 import hparam as conf
 import sessionWrapper as sesswrapper
-import data_process_list as dp
+#import data_process_list as dp
+import data_process as dp
 import model_zoo as mz
 import numpy as np
 
@@ -17,6 +18,7 @@ c = conf.config('baseline_2in1').config['common']
 
 tv_gen = dp.train_validation_generaotr()
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
+
 
 
 x = tf.placeholder(tf.float32, [None, c['input_step'], np.shape(train)[-1]]) 

@@ -114,6 +114,7 @@ class model_zoo:
         
             with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
                 encoder_output, final_state = nf.encoder(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                
                 decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units']) 
                 
                 decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
@@ -131,9 +132,10 @@ class model_zoo:
                     
                     
         
-    def baseline_LuongAtt_lstm_cnn(self):
+    
+    def baseline_LuongAtt_lstm_cnn_cls(self):
         
-        output_projecter = tf.layers.Dense(1, name="output_project")  
+        output_projecter = tf.layers.Dense(3, name="output_project")  
         
         def project_fn(tensor):
         
@@ -142,19 +144,20 @@ class model_zoo:
             output = output_projecter(tensor)
             
             if not self.is_train:
-                output_price = tf.slice(output, (0,0), (self.conf['batch_size'], 1))
-                output_ud = tf.slice(output, (0,1), (self.conf['batch_size'], 3))
-                output_ud = tf.nn.softmax(output_ud, name='softmax')
-                output =tf.concat([output_price, output_ud], axis = -1)
+                output = tf.nn.softmax(output, name='softmax')
+
               
             return output
         
         with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
-        
+            
+            cnn_encoder = nf.cnn_encoder_vgg(self.inputs, self.dropout, is_training = self.is_train)
+            
             with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
-                encoder_output, final_state = nf.encoder(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
-                decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units']) 
-                
+                encoder_output, final_state = nf.encoder(cnn_encoder,  self.conf['n_linear_hidden_units'], 
+                                                self.conf['n_lstm_hidden_units'], self.conf['batch_size'], time_step= self.conf['input_step'], nFeatures=4)
+            
+                decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])      
                 decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
                 #decoder_cell = tf.contrib.rnn.BasicLSTMCell(self.conf['n_lstm_hidden_units'])
             
@@ -162,13 +165,10 @@ class model_zoo:
                 
         
                 if self.is_train:
-                    self.decoder_output, _  = nf.decoder_2in_1(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
+                    self.decoder_output, _  = nf.decoder_cls(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
                                                          final_state, self.conf['predict_step'], dropout = self.dropout, is_train = True)
                 else:
-                    self.decoder_output, _  = nf.decoder_2in_1(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
+                    self.decoder_output, _  = nf.decoder_cls(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
                                                          final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
-                    
-                    
-    
     
 

@@ -41,7 +41,8 @@ def get_batch(data_set, train_step,batch_size, cur_index):
 
     batch =  data_set[cur_index:cur_index + batch_size, :, :]
     train, label = np.split(batch, [train_step], axis=1)
-    label = label[:,:,-1]
+    
+    label = label[:,:,3]
 
     return train, label
 
@@ -52,9 +53,8 @@ def get_batch_cls(data_set, train_step,batch_size, cur_index):
 
     batch =  data_set[cur_index:cur_index + batch_size, :, :]
     train, label = np.split(batch, [train_step], axis=1)
-    
-    train = train[:,:,0:4]
-    label = label[:,:,4:7]
+   
+    label = label[:,:,10:13]
 
     return train, label
 
@@ -66,12 +66,13 @@ def get_batch_2in1(data_set, train_step,batch_size, cur_index):
     batch =  data_set[cur_index:cur_index + batch_size, :, :]
     train, label = np.split(batch, [train_step], axis=1)
     
-    train = train[:,:,0:4]
-    label = label[:,:,3:7]
+    label_ud = label[:,:,10:13]
+    label_p = label[:,:,3]
+    
+    label = np.dstack([label_p,label_ud])
 
     return train, label
 
-get_batch = get_batch_2in1
 
 class sessionWrapper:
 
@@ -91,8 +92,13 @@ class sessionWrapper:
         self.train_summary = train_summary
         self.test_summary = test_summary
         self.conf = conf
+        self.sample_method = {'reg':get_batch,
+                              'cls':get_batch_cls,
+                              '2in1':get_batch_2in1}
 
     def run(self, train_set, test_set):
+        
+        get_batch = self.sample_method [self.conf['sample_type']]
         
         epoch =  self.conf['current_epoch']
         pbar = tqdm(total =  self.conf['total_epoch'])

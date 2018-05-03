@@ -24,12 +24,13 @@ class config:
         conf = self.config['common']   
         
         #Data Attributes
-        conf['src_file_path'] = './Data/all_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
         conf['input_stocks'] = ['1101']
-        conf['train_period'] =  ['20130102', '20130502']
+        conf['train_period'] =  ['20130102', '20140502']
         conf['eval_period'] =  ['20170102', '20180311']
         
         #Model Attributes
+        conf['sample_type'] = 'reg'
         conf['model'] = 'baseline_LuongAtt_lstm'
         conf['checkpoint_dir'] = './model/test'
         conf['ckpt_name'] = 'test.ckpt'
@@ -52,7 +53,8 @@ class config:
         conf = self.config['common']   
         
         #Data Attributes
-        conf['src_file_path'] = './Data/all_data.pkl'
+        #conf['src_file_path'] = './Data/all_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
         conf['input_stocks'] = ['1101']
         conf['train_period'] =  ['20130102', '20130811']
         conf['eval_period'] =  ['20170311', '20180402']
@@ -107,12 +109,13 @@ class config:
         conf = self.config['common']   
         
         #Data Attributes
-        conf['src_file_path'] = './Data/all_data.pkl'
-        conf['input_stocks'] = ['1101']
-        conf['train_period'] =  ['20130102', '20130711']
-        conf['eval_period'] =  ['20170311', '20180402']
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        conf['train_period'] =  ['20130102', '20140502']
+        conf['eval_period'] =  ['20170102', '20180311']
         
         #Model Attributes
+        conf['sample_type'] = '2in1'
         conf['model'] = 'baseline_LuongAtt_lstm_2in1'
         conf['checkpoint_dir'] = './model/baseline_reg_dropout_2in1'
         conf['ckpt_name'] = 'baseline_reg.ckpt'

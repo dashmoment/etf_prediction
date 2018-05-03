@@ -22,13 +22,15 @@ class train_validation_generaotr:
         
         print_c("Read pickle data")
         
-        f = open(filepath, 'rb')
-        pickle.load(f)
-        pickle.load(f)
-        pickle.load(f)
-        pickle.load(f)
-        pickle.load(f)
-        process_data = pickle.load(f)
+        process_data = pd.read_pickle(filepath)
+        
+#        f = open(filepath, 'rb')
+#        pickle.load(f)
+#        pickle.load(f)
+#        pickle.load(f)
+#        pickle.load(f)
+#        pickle.load(f)
+#        process_data = pickle.load(f)
         #process_data = pd.DataFrame(pickle.load(f))
     
         print_c("Finish read pickle data")
@@ -52,7 +54,7 @@ class train_validation_generaotr:
             data = data.iloc[:,mask]
         
         #drop NA
-        data = data.dropna()
+#        data = data.dropna()
         
 #        pbar = tqdm(data.columns)
 #        for c in pbar:    
@@ -132,27 +134,25 @@ class train_validation_generaotr:
 
 #Simple Demo
 filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
-#tv_gen = train_validation_generaotr()
-
-f = pd.read_pickle(filepath)
-m = pickle.dump(filepath)
+tv_gen = train_validation_generaotr()
+#f = pd.read_pickle(filepath)
 
 #Single Stock
 
-#s = tv_gen._selectData2array(f, ['1101'], ['20130302', '20130502'])
+#s = tv_gen._selectData2array(filepath, ['1101'], ['20130302', '20130502'])
 #t,v = tv_gen._split_train_val(s, 10,5,0.25)
-#train, val = tv_gen.generate_train_val_set(filepath, ['1101'], 10, 5, 0.25, ['20130302', '20130502'])
+#train, val = tv_gen.generate_train_val_set(filepath, ['0050'], 10, 5, 0.25, ['20130302', '20140502'])
 #Multiple Stock
 #train_mul, val_mul = tv_gen.generate_train_val_set(filepath, ['1101','1102'], 10, 5, 0.25, ['20130302', '20130502'])
 
-s = open('/home/ubuntu/dataset/etf_prediction/all_mata_data.pkl', 'rb')
-pickle.load(s)
-pickle.load(s)
-pickle.load(f)
-fl = pickle.load(s)
-fl =  pickle.load(s)  
+#s = open('/home/ubuntu/dataset/etf_prediction/all_mata_data.pkl', 'rb')
+#a = pickle.load(s)
+#b = pickle.load(s)
+#c = pickle.load(s)
+#fl =  pickle.load(s)  
+#e =  pickle.load(s) 
+#f =  pickle.load(s)  
 
-f.close()
 
 
 

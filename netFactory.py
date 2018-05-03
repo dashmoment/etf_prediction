@@ -1,4 +1,90 @@
 import tensorflow as tf
+import numpy as np
+
+def max_pool_layer(inputs, kernel_shape, stride, name=None, padding='VALID'):
+          
+    return tf.nn.max_pool(inputs, kernel_shape, stride, padding, name=name)
+
+def avg_pool_layer(inputs, kernel_shape, stride, name=None, padding='VALID'):
+          
+    return tf.nn.avg_pool(inputs, kernel_shape, stride, padding, name=name)
+    
+def lrelu(x, name = "leaky", alpha = 0.2):
+
+    with tf.variable_scope(name):
+        leaky = tf.maximum(x, alpha * x, name=name)
+        #leaky = tf.nn.relu(x) - alpha * tf.nn.relu(-x)
+    return leaky
+
+def batchnorm(input, index = 0, reuse = False):
+    with tf.variable_scope("batchnorm_{}".format(index), reuse = reuse):
+        # this block looks like it has 3 inputs on the graph unless we do this
+        input = tf.identity(input)
+
+        channels = input.get_shape()[3]
+        offset = tf.get_variable("offset", [channels], dtype=tf.float32, initializer=tf.zeros_initializer())
+        scale = tf.get_variable("scale", [channels], dtype=tf.float32, initializer=tf.random_normal_initializer(1.0, 0.02))
+        mean, variance = tf.nn.moments(input, axes=[0, 1, 2], keep_dims=False)
+        variance_epsilon = 1e-5
+        normalized = tf.nn.batch_normalization(input, mean, variance, offset, scale, variance_epsilon=variance_epsilon)
+    return normalized
+
+def convolution_layer(inputs, kernel_shape, stride, name, pre_shape = None, flatten = False ,padding = 'SAME',initializer=tf.contrib.layers.xavier_initializer(), activat_fn=tf.nn.relu, is_bn=False):
+                                                                                            #initializer=tf.contrib.layers.xavier_initializer()
+    
+    if pre_shape == None: pre_shape = inputs.get_shape()[-1]
+    rkernel_shape = [kernel_shape[0], kernel_shape[1], pre_shape, kernel_shape[2]]     
+    
+    with tf.variable_scope(name) as scope:
+        
+        try:
+            weight = tf.get_variable("weights",rkernel_shape, tf.float32, initializer=initializer)
+            bias = tf.get_variable("bias",kernel_shape[2], tf.float32, initializer=tf.zeros_initializer())
+        except:
+            scope.reuse_variables()
+            weight = tf.get_variable("weights",rkernel_shape, tf.float32, initializer=initializer)
+            bias = tf.get_variable("bias",kernel_shape[2], tf.float32, initializer=tf.zeros_initializer())
+        
+        net = tf.nn.conv2d(inputs, weight,stride, padding=padding)
+        net = tf.add(net, bias)
+
+        if is_bn:
+            net = batchnorm(net)
+        else:
+            net = net
+        
+        if not activat_fn==None:
+            net = activat_fn(net, name=name+"_out")
+        
+        if flatten == True:
+            net = tf.reshape(net, [-1, int(np.prod(net.get_shape()[1:]))], name=name+"_flatout")
+        
+    return net
+
+def fc_layer(inputs, out_shape, name,initializer=tf.contrib.layers.xavier_initializer(), activat_fn=tf.nn.relu):
+    
+    
+    pre_shape = inputs.get_shape()[-1]
+    
+    with tf.variable_scope(name) as scope:
+        
+        
+        try:
+            weight = tf.get_variable("weights",[pre_shape, out_shape], tf.float32, initializer=initializer)
+            bias = tf.get_variable("bias",out_shape, tf.float32, initializer=initializer)
+        except:
+            scope.reuse_variables()
+            weight = tf.get_variable("weights",[pre_shape, out_shape], tf.float32, initializer=initializer)
+            bias = tf.get_variable("bias",out_shape, tf.float32, initializer=initializer)
+        
+        
+        if activat_fn != None:
+            net = activat_fn(tf.nn.xw_plus_b(inputs, weight, bias, name=name + '_out'))
+        else:
+            net = tf.nn.xw_plus_b(inputs, weight, bias, name=name)
+        
+    return net
+
 
 def encoder(inputs, n_linear_hidden_units, n_lstm_hidden_units, batch):
 	
@@ -248,7 +334,22 @@ def decoder_2in_1(batch, decoder_cell, project_fn, previous_y, state, predict_ti
     return targets, raw_outputs
 
 
-
+def cnn_encoder_vgg(inputs, dropout, is_training):
+    
+     with tf.variable_scope("attention"):
+                    
+            net = convolution_layer(inputs, [1,3,128], [1,1,1,1],name="conv2-1")
+            net = convolution_layer(net, [1,3,128], [1,1,1,1],name="conv2-2")
+            net = convolution_layer(net, [1,3,256], [1,1,1,1],name="conv3-1")
+            net = convolution_layer(net, [1,3,256], [1,1,1,1],name="conv3-2")
+            net = convolution_layer(net, [1,3,512], [1,1,1,1],name="conv4-1")
+            net = convolution_layer(net, [1,3,512], [1,1,1,1],name="conv4-2")
+            net = tf.nn.max_pool(net, ksize=[1, 1, 3, 1],strides=[1, 1, 2, 1], padding='SAME')
+           
+            net = convolution_layer(net, [1,3,512], [1,1,1,1],name="conv4-2")
+                  
+                    
+    
 
 
 

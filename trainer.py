@@ -1,7 +1,7 @@
 import tensorflow as tf
 import hparam as conf
 import sessionWrapper as sesswrapper
-import data_process as dp
+import data_process_list as dp
 import model_zoo as mz
 
 
@@ -9,7 +9,7 @@ def l2loss(x,y):
     loss = tf.reduce_mean(tf.squared_difference(x, y))
     return loss 
 
-c = conf.config('baseline').config['common']
+c = conf.config('sample').config['common']
 
 tv_gen = dp.train_validation_generaotr()
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])

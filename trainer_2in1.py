@@ -1,9 +1,9 @@
 import tensorflow as tf
 import hparam as conf
 import sessionWrapper as sesswrapper
-import data_process as dp
+import data_process_list as dp
 import model_zoo as mz
-
+import numpy as np
 
 def l2loss(x,y):   
     loss = tf.reduce_mean(tf.squared_difference(x, y))
@@ -18,18 +18,9 @@ c = conf.config('baseline_2in1').config['common']
 tv_gen = dp.train_validation_generaotr()
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
 
-import numpy as np
-train_dummies_label = np.ones((train.shape[0],train.shape[1],3))*0.3
-eval_dummies_label = np.ones((validation.shape[0], validation.shape[1], 3))*0.3
 
-train = np.dstack([train, train_dummies_label])
-validation = np.dstack([validation, eval_dummies_label])
-
-features = 4
-labels = 4
-
-x = tf.placeholder(tf.float32, [None, c['input_step'], features]) 
-y = tf.placeholder(tf.float32, [None, c['predict_step'], labels]) 
+x = tf.placeholder(tf.float32, [None, c['input_step'], np.shape(train)[-1]]) 
+y = tf.placeholder(tf.float32, [None, c['predict_step'], 4]) 
 
 
 decoder_output = mz.model_zoo(c, x,y, dropout = 0.6, is_train = True).decoder_output
@@ -76,7 +67,7 @@ with tf.Session() as sess:
 #    predict = sess.run([decoder_output_eval_price, decoder_output_eval_ud], feed_dict={x:train[0:8, 0:10, 0:4], y:train[0:8, 10:15, 3:7]})
 
 
-    sess = sesswrapper.sessionWrapper(	c, x, y, accuracy_eval, c['input_step'],
+    sess = sesswrapper.sessionWrapper(	c, x, y, loss_eval, c['input_step'],
     									loss, train_op, merged_summary_train, 
     									merged_summary_val)
     sess.run(train, validation)

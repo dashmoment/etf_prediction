@@ -3,9 +3,7 @@ import pandas as pd
 import _pickle as pickle
 from tqdm import tqdm
 
-import sys
-import pandas.core.indexes 
-sys.modules['pandas.indexes'] = pandas.core.indexes
+
 
 verbose_state = True
 
@@ -23,15 +21,6 @@ class train_validation_generaotr:
         print_c("Read pickle data")
         
         process_data = pd.read_pickle(filepath)
-        
-#        f = open(filepath, 'rb')
-#        pickle.load(f)
-#        pickle.load(f)
-#        pickle.load(f)
-#        pickle.load(f)
-#        pickle.load(f)
-#        process_data = pickle.load(f)
-        #process_data = pd.DataFrame(pickle.load(f))
     
         print_c("Finish read pickle data")
         
@@ -52,20 +41,14 @@ class train_validation_generaotr:
         if time_period != None:
             mask = (data.columns >= time_period[0]) & (data.columns < time_period[1])
             data = data.iloc[:,mask]
-        
-        #drop NA
-#        data = data.dropna()
-        
-#        pbar = tqdm(data.columns)
-#        for c in pbar:    
-#            for idx in data[c].index:
-#                data[c].loc[idx] = data[c].loc[idx].drop(['ID', 'Date','name','trade']).tolist()
                 
-        stock = data.iloc[0]
-        stock = np.vstack(np.array(stock))
-#        stock = np.vstack(stock)
-        
+       
+        stock = data.loc[stock_IDs]
+        stock = np.hstack(np.array(stock))
+        stock = np.vstack(stock)
+
         if len(stock_IDs) > 1:
+            print(np.shape(stock))
             stock = np.split(stock, len(stock_IDs))
             stock =np.dstack(stock)
         
@@ -96,6 +79,8 @@ class train_validation_generaotr:
        
         if N_val < 1: switch_pivot = 0.1
         else: switch_pivot = N_train//N_val
+
+        print(switch_pivot)
         
         pbar_s = tqdm(cut_len)
    
@@ -135,8 +120,27 @@ class train_validation_generaotr:
 #Simple Demo
 filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
 tv_gen = train_validation_generaotr()
-#f = pd.read_pickle(filepath)
+f = pd.read_pickle(filepath)
 
+
+stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208',  '00701', '00713']
+test = dict()
+
+for s in stocks:
+    d = tv_gen._selectData2array(f, [s], None)
+    test[s] = d
+    
+a = f.loc[['00701']]
+a = np.hstack(np.array(a))
+
+#s = f.loc[['1101','1102']]
+#e = np.hstack(np.array(s))
+#e = np.vstack(e)
+#g = np.split(e, 2)
+#h = np.dstack(g)
+#
+#ee = f.iloc[0]
+#ee = np.vstack(ee)
 #Single Stock
 
 #s = tv_gen._selectData2array(filepath, ['1101'], ['20130302', '20130502'])

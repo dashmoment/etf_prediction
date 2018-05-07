@@ -2,6 +2,7 @@ import os
 import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
+import random
 
 
 def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):
@@ -148,14 +149,14 @@ class sessionWrapper:
                     sess.run(self.optimizer, feed_dict={self.x:train_data, self.y:train_label})
 
                 if epoch% self.conf['save_ckpt_epoch'] == 0:
-                    train_data, train_label = get_batch(train_set, self.train_step, batch_size, 0)
+                    train_data, train_label = get_batch(train_set, self.train_step, batch_size, random.randint(0,len(train_set)//batch_size))
                     l2loss, train_sum =  sess.run([self.loss, self.train_summary], feed_dict={self.x:train_data, self.y:train_label})
                     self.summary_writer.add_summary(train_sum, epoch)
                     save_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name'], epoch)
                     pbar.set_description('train l2loss: {}'.format(l2loss))    
 				
                 if epoch% self.conf['evaluation_epoch']  == 0:
-                    val_data, val_label = get_batch(test_set, self.train_step, batch_size, 0)
+                    val_data, val_label = get_batch(test_set, self.train_step, batch_size, random.randint(0,len(test_set)//batch_size))
                     l2loss, val_sum =  sess.run([self.loss_eval, self.test_summary], feed_dict={self.x: val_data, self.y: val_label})         
                     self.summary_writer.add_summary(val_sum, epoch)
                     eval_bar.update(self.conf['evaluation_epoch'])

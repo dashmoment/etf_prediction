@@ -53,8 +53,8 @@ class config:
         conf = self.config['common']   
         
         #Data Attributes
-        #conf['src_file_path'] = './Data/all_data.pkl'
-        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['src_file_path'] = './Data/all_feature_data.pkl'
+        #conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
         conf['input_stocks'] = ['0050']
         conf['train_period'] =  ['20130102', '20180811']
         conf['eval_period'] =  ['20170311', '20180402']
@@ -91,7 +91,7 @@ class config:
         #Model Attributes
         conf['sample_type'] = 'test'
         conf['model'] = 'baseline_LuongAtt_lstm'
-        conf['checkpoint_dir'] = './model/sin_test'
+        conf['checkpoint_dir'] = './model/sin_test_Truetrain'
         conf['ckpt_name'] = 'sin_test.ckpt'
         conf['input_step'] = 30
         conf['predict_step'] = 5

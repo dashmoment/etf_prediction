@@ -44,7 +44,7 @@ class train_validation_generaotr:
                 
         
         stock = data.loc[stock_IDs]
-        stock = stock.dropna(axis=1)
+#        stock = stock.dropna(axis=1)
         stock = np.hstack(np.array(stock))
         stock = np.vstack(stock)
 
@@ -55,6 +55,31 @@ class train_validation_generaotr:
         
         return stock
     
+    def _split_train_val_side_by_side(self, data, train_windows, predict_windows, train_val_ratio):
+        
+        print_c('Split train and validation data from {} data'.format(len(data)))   
+        sample_window =  train_windows + predict_windows 
+        total_len = len(data)
+        pivot = int(total_len*(1-train_val_ratio))
+        train_data = data[:pivot]
+        valid_data = data[pivot:]
+        
+        train = []
+        validataion = []
+        
+        for i in range(len(train_data)-sample_window):
+            train.append(train_data[i:i+sample_window])
+            
+        for i in range(len(valid_data)-sample_window):
+            validataion.append(valid_data[i:i+sample_window])
+            
+        if len(train) > 0: train = np.stack(train)
+        if len(validataion) > 0: validataion = np.stack(validataion)
+        
+        return train, validataion
+            
+        
+        
     def _split_train_val(self, data, train_windows, predict_windows, train_val_ratio):
         
         #train_windows: windows size for model input data
@@ -81,8 +106,6 @@ class train_validation_generaotr:
         if N_val < 1: switch_pivot = 0.1
         else: switch_pivot = N_train//N_val
 
-        print(switch_pivot)
-        print('aaaa', cut_len)
         
         pbar_s = tqdm(cut_len)
    
@@ -100,7 +123,7 @@ class train_validation_generaotr:
             else:
                 train.append(data[idx:idx+sample_window])
                 pivot += 1
-                idx += sample_window       
+                idx += 1       
                 pbar_s.update(1)
                 
         if len(train) > 0: train = np.stack(train)
@@ -114,8 +137,8 @@ class train_validation_generaotr:
         
         process_data = self._load_data(filepath)
         stock_data = self._selectData2array(process_data, stock_IDs, time_period)
-        train, valid = self._split_train_val(stock_data, train_windows, predict_windows, train_val_ratio)
-        
+        #train, valid = self._split_train_val(stock_data, train_windows, predict_windows, train_val_ratio)
+        train, valid = self._split_train_val_side_by_side(stock_data, train_windows, predict_windows, train_val_ratio)
         return train, valid
     
     def get_test_data(self, train_windows, stocks):

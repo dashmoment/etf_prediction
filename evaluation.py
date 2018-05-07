@@ -41,7 +41,7 @@ n_lstm_hidden_units =  c['n_lstm_hidden_units']
 x = tf.placeholder(tf.float32, [None, c['input_step'], evalSet.shape[-1]]) 
 y = tf.placeholder(tf.float32, [None, c['predict_step']]) 
 isTrain = tf.placeholder(tf.bool, ())  
-predicted = mz.model_zoo(c, x,y, False).decoder_output
+predicted = mz.model_zoo(c, x, y, False).decoder_output
 
 abs_loss = tf.abs(predicted-y)
 weighted_array = [0.1,0.15,0.2,.025,0.3]

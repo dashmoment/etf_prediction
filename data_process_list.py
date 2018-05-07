@@ -42,8 +42,9 @@ class train_validation_generaotr:
             mask = (data.columns >= time_period[0]) & (data.columns < time_period[1])
             data = data.iloc[:,mask]
                 
-       
+        
         stock = data.loc[stock_IDs]
+        stock = stock.dropna(axis=1)
         stock = np.hstack(np.array(stock))
         stock = np.vstack(stock)
 
@@ -81,11 +82,12 @@ class train_validation_generaotr:
         else: switch_pivot = N_train//N_val
 
         print(switch_pivot)
+        print('aaaa', cut_len)
         
         pbar_s = tqdm(cut_len)
    
         while idx < cut_len:
-              
+            
             if pivot == switch_pivot:      
                 pivot = 0
                 idx += predict_windows - 1
@@ -98,7 +100,7 @@ class train_validation_generaotr:
             else:
                 train.append(data[idx:idx+sample_window])
                 pivot += 1
-                idx += 1       
+                idx += sample_window       
                 pbar_s.update(1)
                 
         if len(train) > 0: train = np.stack(train)
@@ -115,47 +117,35 @@ class train_validation_generaotr:
         train, valid = self._split_train_val(stock_data, train_windows, predict_windows, train_val_ratio)
         
         return train, valid
-
+    
+    def get_test_data(self, train_windows, stocks):
+        
+        train_dict = dict()
+             
+        for s in stocks:
+            train_dict[s] = stocks[s][-train_windows:]
+    
+        return train_dict
+    
+    def generate_test_set(self, filepath, stock_IDs, train_windows):
+        
+        testSet = {}
+        process_data = self._load_data(filepath)
+        
+        for s in stock_IDs:
+            d = self._selectData2array(process_data, [s], None)
+            testSet[s] = d
+            
+        return self.get_test_data(train_windows, testSet)
+    
 
 #Simple Demo
-filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
-tv_gen = train_validation_generaotr()
-f = pd.read_pickle(filepath)
+#filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+#tv_gen = train_validation_generaotr()
+#f = pd.read_pickle(filepath)
+#stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208', '00690', '00692', '00701', '00713']
 
-
-stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208',  '00701', '00713']
-test = dict()
-
-for s in stocks:
-    d = tv_gen._selectData2array(f, [s], None)
-    test[s] = d
-    
-a = f.loc[['00701']]
-a = np.hstack(np.array(a))
-
-#s = f.loc[['1101','1102']]
-#e = np.hstack(np.array(s))
-#e = np.vstack(e)
-#g = np.split(e, 2)
-#h = np.dstack(g)
-#
-#ee = f.iloc[0]
-#ee = np.vstack(ee)
-#Single Stock
-
-#s = tv_gen._selectData2array(filepath, ['1101'], ['20130302', '20130502'])
-#t,v = tv_gen._split_train_val(s, 10,5,0.25)
-#train, val = tv_gen.generate_train_val_set(filepath, ['0050'], 10, 5, 0.25, ['20130302', '20140502'])
-#Multiple Stock
-#train_mul, val_mul = tv_gen.generate_train_val_set(filepath, ['1101','1102'], 10, 5, 0.25, ['20130302', '20130502'])
-
-#s = open('/home/ubuntu/dataset/etf_prediction/all_mata_data.pkl', 'rb')
-#a = pickle.load(s)
-#b = pickle.load(s)
-#c = pickle.load(s)
-#fl =  pickle.load(s)  
-#e =  pickle.load(s) 
-#f =  pickle.load(s)  
+#testSet = tv_gen.generate_test_set(filepath, stocks, 30)
 
 
 

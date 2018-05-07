@@ -180,7 +180,8 @@ def decoder(batch, decoder_cell, project_fn, previous_y, state, predict_time_ste
                         
         loop_init_train =   [	tf.constant(0, dtype=tf.int32), #time
     	                    		tf.reshape(previous_y[:,0], (-1, 1)), 
-    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+    	                    		state, 
+                                    #decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         
@@ -189,8 +190,9 @@ def decoder(batch, decoder_cell, project_fn, previous_y, state, predict_time_ste
     else:      
   
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
-    	                    		project_fn(previous_y), 
-    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+    	                    		project_fn(previous_y),
+                                    state, 
+    	                    		#decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_inference)
@@ -241,14 +243,15 @@ def decoder_cls(batch, decoder_cell, project_fn, previous_y, state, predict_time
         array_outputs = array_outputs.write(time, output)
         array_targets = array_targets.write(time, projected_output)
         
-        return time + 1, projected_output, state, array_targets, array_outputs
+        return time + 1, tf.nn.softmax(projected_output), state, array_targets, array_outputs
 
 
     if is_train:
-                        
+        
+        #decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state)
         loop_init_train =   [	tf.constant(0, dtype=tf.int32), #time
     	                    		tf.reshape(previous_y[:,0], (-1, 3)), 
-    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+    	                    		state,
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         
@@ -257,8 +260,8 @@ def decoder_cls(batch, decoder_cell, project_fn, previous_y, state, predict_time
     else:      
   
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
-    	                    		project_fn(previous_y), 
-    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
+    	                    		tf.nn.softmax(project_fn(previous_y)), 
+    	                    		state,
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_inference, loop_init_inference)
@@ -298,15 +301,22 @@ def decoder_2in_1(batch, decoder_cell, project_fn, previous_y, state, predict_ti
         
         return time + 1, projected_output, state, array_targets, array_outputs
 
+    def softmax_out(tensor):
+        y_price = tf.slice(tensor, [0,0], [batch, 1])
+        y_ud = tf.nn.softmax(tf.slice(tensor, [0,1], [batch, 3]))
+        return tf.concat([y_price, y_ud],-1)
+
 
     def loop_fn_inference(time, prev_output, prev_state, array_targets: tf.TensorArray, array_outputs: tf.TensorArray):
 
         next_input = prev_output
         output, state = decoder_cell(next_input, prev_state)
-        projected_output = project_fn(output)
+        projected_logits = project_fn(output)
+
+        projected_output = softmax_out(projected_logits)
 
         array_outputs = array_outputs.write(time, output)
-        array_targets = array_targets.write(time, projected_output)
+        array_targets = array_targets.write(time, projected_logits)
         
         return time + 1, projected_output, state, array_targets, array_outputs
 
@@ -322,16 +332,16 @@ def decoder_2in_1(batch, decoder_cell, project_fn, previous_y, state, predict_ti
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_train, loop_init_train)
 
     else:      
-  
+        
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
-    	                    		project_fn(previous_y), 
+    	                    		softmax_out(project_fn(previous_y)), 
     	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_inference, loop_init_inference)
+
         
     targets = targets_ta.stack()
-#    targets = tf.squeeze(targets, axis=-1)
     targets = tf.transpose(targets, (1,0,2))
 
     raw_outputs = outputs_ta.stack()

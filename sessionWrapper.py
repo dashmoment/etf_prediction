@@ -46,6 +46,19 @@ def get_batch(data_set, train_step,batch_size, cur_index):
 
     return train, label
 
+def get_batch_test(data_set,train_step,batch_size, cur_index):
+    
+    #data_set: [None, time_step, features ]
+    #batch_idx: index of batch start point
+
+    batch =  data_set[cur_index:cur_index + batch_size, :, :]
+    train, label = np.split(batch, [train_step], axis=1)
+    
+    train = train[:,:,0]
+    label = label[:,:,1]
+    
+    return np.reshape(train, [-1,30,1]), label
+
 def get_batch_cls(data_set, train_step,batch_size, cur_index):
     
     #data_set: [None, time_step, features ]
@@ -94,7 +107,8 @@ class sessionWrapper:
         self.conf = conf
         self.sample_method = {'reg':get_batch,
                               'cls':get_batch_cls,
-                              '2in1':get_batch_2in1}
+                              '2in1':get_batch_2in1,
+                              'test':get_batch_test}
 
     def run(self, train_set, test_set):
         

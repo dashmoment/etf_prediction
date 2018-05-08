@@ -24,69 +24,7 @@ class model_zoo:
         except: 
             print("Can not find configuration")
             raise
-        
-    def baseline_LuongAtt_lstm(self):
-        
-        def project_fn(tensor):
-            
-            output_projecter = tf.layers.Dense(1, name="output_project")  
-        
-            if self.is_train:
-                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
-            d_layer = output_projecter(tensor)
-                    
-            return d_layer
-        
-        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
-        
-            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
-                encoder_output, final_state = nf.encoder(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
-                decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])     
-                
-                #decoder_cell = tf.contrib.rnn.BasicLSTMCell(self.conf['n_lstm_hidden_units'])
-                decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
-            
-            with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):  
-                
-              
-                if self.is_train:
-                    self.decoder_output, _  = nf.decoder(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
-                                                         final_state, self.conf['predict_step'], dropout = self.dropout, is_train = True)
-                else:
-                    self.decoder_output, _  = nf.decoder(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
-                                                         final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
-
-    def baseline_LuongAtt_gru(self):
-        
-        def project_fn(tensor):
-            
-            output_projecter = tf.layers.Dense(1, name="output_project")  
-        
-            if self.is_train:
-                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
-            d_layer = output_projecter(tensor)
-                    
-            return d_layer
-        
-        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
-        
-            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
-                encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
-                #decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])     
-                
-                decoder_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
-                decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
-            
-            with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):  
-                
-              
-                if self.is_train:
-                    self.decoder_output, _  = nf.decoder_GRU(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
-                                                         final_state, self.conf['predict_step'], dropout = self.dropout, is_train = True)
-                else:
-                    self.decoder_output, _  = nf.decoder_GRU(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
-                                                         final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
-
+#==============================RNN===================================================
     def baseline_encReg_gru(self):
         
         def project_fn(tensor):
@@ -179,7 +117,71 @@ class model_zoo:
                 encoder_output = tf.transpose(encoder_output, (1,0,2))
                 
                 self.decoder_output = project_fn(encoder_output[-1])
+    
+#==============================Seq2Seq===================================================           
+        
+    def baseline_LuongAtt_lstm(self):
+        
+        def project_fn(tensor):
+            
+            output_projecter = tf.layers.Dense(1, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
+                encoder_output, final_state = nf.encoder(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])         
+                #decoder_cell = tf.contrib.rnn.BasicLSTMCell(self.conf['n_lstm_hidden_units'])
+                decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
+            
+            with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):  
                 
+              
+                if self.is_train:
+                    self.decoder_output, _  = nf.decoder(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
+                                                         final_state, self.conf['predict_step'], dropout = self.dropout, is_train = True)
+                else:
+                    self.decoder_output, _  = nf.decoder(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
+                                                         final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
+
+    def baseline_LuongAtt_gru(self):
+        
+        def project_fn(tensor):
+            
+            output_projecter = tf.layers.Dense(1, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
+                encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                #decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])     
+                
+                decoder_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
+            
+            with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):  
+                
+              
+                if self.is_train:
+                    self.decoder_output, _  = nf.decoder_GRU(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
+                                                         final_state, self.conf['predict_step'], dropout = self.dropout, is_train = True)
+                else:
+                    self.decoder_output, _  = nf.decoder_GRU(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
+                                                         final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
+
+    
                     
                     
     def baseline_LuongAtt_lstm_cls(self):
@@ -289,6 +291,5 @@ class model_zoo:
                 else:
                     self.decoder_output, _  = nf.decoder_cls(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
                                                          final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
-    
-#    def test_seq2seq(self):
+
         

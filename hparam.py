@@ -159,7 +159,7 @@ class config:
         conf['feature_size'] = None
         conf['sample_type'] = 'reg'
         conf['model'] = 'baseline_LuongAtt_gru'
-        conf['checkpoint_dir'] = '../model/baseline_reg_GRU_test'
+        conf['checkpoint_dir'] = '../model/baseline_reg_GRU_test_drop08'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 30
         conf['predict_step'] = 5

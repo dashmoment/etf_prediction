@@ -168,7 +168,7 @@ class sessionWrapper:
                 epoch += 1
                 pbar.update(1)
                 if  self.conf['sample_type'] != 'random': np.random.shuffle(train_set)
-                else: print('random')
+                #else: print('random')
                 
                 #Cehck variable reused
 #                tvars = tf.trainable_variables()

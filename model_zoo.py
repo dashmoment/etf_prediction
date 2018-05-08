@@ -66,7 +66,7 @@ class model_zoo:
         
         with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
         
-            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
+            with tf.variable_scope('encoder', initializer=tf.orthogonal_initializer(), reuse=tf.AUTO_REUSE):
                 #encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
                 fw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
                 fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell, self.dropout)
@@ -75,8 +75,8 @@ class model_zoo:
                 
                 fw_init_state = fw_cell.zero_state(self.conf['batch_size'], dtype=tf.float32)
                 bw_init_state = bw_cell.zero_state(self.conf['batch_size'], dtype=tf.float32)  
-
-                encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, initial_state_fw=fw_init_state, initial_state_bw=bw_init_state, scope='gru_bidection')
+                encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, dtype="float32", scope='gru_bidection')
+                #encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, initial_state_fw=fw_init_state, initial_state_bw=bw_init_state, scope='gru_bidection')
                 encoder_output = tf.concat(encoder_output, 2)   
                 print(encoder_output)
                 encoder_output = tf.transpose(encoder_output, (1,0,2))

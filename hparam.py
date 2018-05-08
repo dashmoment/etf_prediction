@@ -189,7 +189,7 @@ class config:
         conf['feature_size'] = 44
         conf['sample_type'] = 'random'
         conf['model'] = 'baseline_encReg_biderect_gru'
-        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_orth_init'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 100
         conf['predict_step'] = 5

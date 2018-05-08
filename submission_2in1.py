@@ -21,6 +21,7 @@ c = conf.config('baseline_2in1').config['common']
 stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208', '00690', '00692', '00701', '00713']
 
 tv_gen = dp.train_validation_generaotr()  
+if c['sample_type'] == 'random' :  tv_gen.generate_train_val_set =  tv_gen.generate_train_val_set_random
 eval_set  = tv_gen.generate_test_set(c['src_file_path'], stocks, c['input_step'])
 
 def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):

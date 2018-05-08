@@ -4,22 +4,18 @@ import sessionWrapper as sesswrapper
 import data_process_list as dp
 import model_zoo as mz
 import numpy as np
+import loss_func as l
 
-
-def l2loss(x,y):   
-    loss = tf.reduce_mean(tf.squared_difference(x, y))
-    return loss 
-
-def cross_entropy_loss(x,y):   
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=x))
-    return loss 
 
 c = conf.config('baseline_cls').config['common']
 
 tv_gen = dp.train_validation_generaotr()
+if c['sample_type'] == 'random' :  tv_gen.generate_train_val_set =  tv_gen.generate_train_val_set_random
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'],c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
-train = np.reshape(np.transpose(train,(0,3,1,2)), (-1,35,13))
-validation = np.reshape(np.transpose(validation,(0,3,1,2)), (-1,35,13))
+
+if len(np.shape(train)) > 3:
+    train = np.reshape(np.transpose(train,(0,3,1,2)), (-1,35,13))
+    validation = np.reshape(np.transpose(validation,(0,3,1,2)), (-1,35,13))
 
 x = tf.placeholder(tf.float32, [None, c['input_step'], np.shape(train)[-1]]) 
 y = tf.placeholder(tf.float32, [None, c['predict_step'], 3]) 
@@ -34,8 +30,8 @@ ground_truth = tf.argmax(y, axis=-1)
 accuracy_train = tf.reduce_sum(tf.cast(tf.equal(predict_train, ground_truth), tf.float32))
 accuracy_eval = tf.reduce_sum(tf.cast(tf.equal(predict_eval, ground_truth), tf.float32))
 
-loss = cross_entropy_loss(decoder_output, y)
-loss_eval = cross_entropy_loss(decoder_output_eval, y)
+loss = l.cross_entropy_loss(decoder_output, y)
+loss_eval = l.cross_entropy_loss(decoder_output_eval, y)
 train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):

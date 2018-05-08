@@ -30,6 +30,7 @@ class config:
         conf['eval_period'] =  ['20170102', '20180311']
         
         #Model Attributes
+        conf['feature_size'] = None
         conf['sample_type'] = 'reg'
         conf['model'] = 'baseline_LuongAtt_lstm'
         conf['checkpoint_dir'] = './model/test'
@@ -53,23 +54,119 @@ class config:
         conf = self.config['common']   
         
         #Data Attributes
-        conf['src_file_path'] = './Data/all_feature_data.pkl'
-        #conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
         conf['input_stocks'] = ['0050']
-        conf['train_period'] =  ['20130102', '20180811']
+        #conf['train_period'] =  ['20130102', '20180811']
+        conf['train_period'] = None
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
+        conf['feature_size'] = None
         conf['sample_type'] = 'reg'
         conf['model'] = 'baseline_LuongAtt_lstm'
-        conf['checkpoint_dir'] = './model/baseline_reg_dropout'
+        conf['checkpoint_dir'] = './model/baseline_reg_dropout_5feature'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 30
         conf['predict_step'] = 5
-        conf['batch_size'] = 16
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 128
+        conf['n_lstm_hidden_units'] = 256
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 101
+        conf['evaluation_epoch'] = 500
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
+
+    def baseline_random(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        conf['train_period'] =  ['20130102', '20150811']
+        #conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = None
+        conf['sample_type'] = 'random'
+        conf['model'] = 'baseline_LuongAtt_gru'
+        conf['checkpoint_dir'] = './model/baseline_reg_random_test'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 30
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
         conf['train_eval_ratio'] = 0.2 
         conf['n_linear_hidden_units'] = 16
-        conf['n_lstm_hidden_units'] = 32
+        conf['n_lstm_hidden_units'] = 16
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 101
+        conf['evaluation_epoch'] = 500
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
+
+    def test_regModel(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        conf['train_period'] =  ['20130102', '20160811']
+        #conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = None
+        conf['sample_type'] = 'reg'
+        conf['model'] = 'baseline_LuongAtt_lstm'
+        conf['checkpoint_dir'] = '../model/baseline_reg_test'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 30
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 8
+        conf['n_lstm_hidden_units'] = 8
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 101
+        conf['evaluation_epoch'] = 500
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
+
+
+    def test_regModel_GRU(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        conf['train_period'] =  ['20130102', '20160811']
+        #conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = None
+        conf['sample_type'] = 'reg'
+        conf['model'] = 'baseline_LuongAtt_gru'
+        conf['checkpoint_dir'] = '../model/baseline_reg_GRU_test'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 30
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 16
+        conf['n_lstm_hidden_units'] = 16
         
         #Session Control
         conf['save_ckpt_epoch'] = 101
@@ -89,6 +186,7 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
+        conf['feature_size'] = None
         conf['sample_type'] = 'test'
         conf['model'] = 'baseline_LuongAtt_lstm'
         conf['checkpoint_dir'] = './model/sin_test_Truetrain'
@@ -119,6 +217,7 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
+        conf['feature_size'] = None
         conf['sample_type'] = 'cls'
         conf['model'] = 'baseline_LuongAtt_lstm_cls'
         conf['checkpoint_dir'] = './model/baseline_reg_dropout_cls'
@@ -150,6 +249,7 @@ class config:
         
         #Model Attributes
         conf['sample_type'] = '2in1'
+        conf['feature_size'] = None
         conf['model'] = 'baseline_LuongAtt_lstm_2in1'
         conf['checkpoint_dir'] = './model/baseline_reg_dropout_2in1'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
@@ -177,6 +277,7 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
+        conf['feature_size'] = None
         conf['model'] = 'baseline_LuongAtt_lstm_cnn_cls'
         conf['checkpoint_dir'] = './model/baseline_LuongAtt_lstm_cnn_cls'
         conf['ckpt_name'] = 'baseline_reg.ckpt'

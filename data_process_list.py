@@ -77,8 +77,20 @@ class train_validation_generaotr:
         if len(validataion) > 0: validataion = np.stack(validataion)
         
         return train, validataion
-            
+
+    def _split_train_val_side_by_side_random(self, data, train_windows, predict_windows, train_val_ratio):
         
+        print_c('Split train and validation data from {} data'.format(len(data)))   
+        sample_window =  train_windows + predict_windows 
+        total_len = len(data)
+        pivot = int(total_len*(1-train_val_ratio))
+        train_data = data[:pivot]
+        valid_data = data[pivot:]
+        
+        train = train_data
+        validataion = valid_data
+        
+        return train, validataion  
         
     def _split_train_val(self, data, train_windows, predict_windows, train_val_ratio):
         
@@ -139,6 +151,15 @@ class train_validation_generaotr:
         stock_data = self._selectData2array(process_data, stock_IDs, time_period)
         #train, valid = self._split_train_val(stock_data, train_windows, predict_windows, train_val_ratio)
         train, valid = self._split_train_val_side_by_side(stock_data, train_windows, predict_windows, train_val_ratio)
+        return train, valid
+
+    def generate_train_val_set_random(self, filepath, stock_IDs, train_windows, predict_windows,
+                               train_val_ratio, time_period = None):
+        
+        process_data = self._load_data(filepath)
+        stock_data = self._selectData2array(process_data, stock_IDs, time_period)
+        #train, valid = self._split_train_val(stock_data, train_windows, predict_windows, train_val_ratio)
+        train, valid = self._split_train_val_side_by_side_random(stock_data, train_windows, predict_windows, train_val_ratio)
         return train, valid
     
     def get_test_data(self, train_windows, stocks):

@@ -86,6 +86,100 @@ class model_zoo:
                 else:
                     self.decoder_output, _  = nf.decoder_GRU(self.conf['batch_size'], decoder_cell, project_fn, encoder_output[:,-1] , 
                                                          final_state, self.conf['predict_step'], dropout = 1.0, is_train = False)
+
+    def baseline_encReg_gru(self):
+        
+        def project_fn(tensor):
+            
+            output_projecter = tf.layers.Dense(5, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
+                #encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                cell = tf.contrib.rnn.DropoutWrapper(cell, self.dropout)
+                init_state = cell.zero_state(self.conf['batch_size'], dtype=tf.float32) 
+                encoder_output, final_state = tf.nn.dynamic_rnn(cell, self.inputs, initial_state=init_state, time_major=False,  scope='lstm_encoder') 
+
+                #decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])     
+                encoder_output = tf.transpose(encoder_output, (1,0,2))
+                print(encoder_output)
+                self.decoder_output = project_fn(encoder_output[-1])
+
+
+    def baseline_encReg_biderect_gru(self):
+        
+        def project_fn(tensor):
+            
+            output_projecter = tf.layers.Dense(5, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
+                #encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                fw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell, self.dropout)
+                bw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell, self.dropout)
+                
+                fw_init_state = fw_cell.zero_state(self.conf['batch_size'], dtype=tf.float32)
+                bw_init_state = bw_cell.zero_state(self.conf['batch_size'], dtype=tf.float32)  
+
+                encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, initial_state_fw=fw_init_state, initial_state_bw=bw_init_state, scope='gru_bidection')
+                encoder_output = tf.concat(encoder_output, 2)   
+                print(encoder_output)
+                encoder_output = tf.transpose(encoder_output, (1,0,2))
+                
+                self.decoder_output = project_fn(encoder_output[-1])
+
+    def baseline_encReg_stacked_gru(self):
+        
+        def project_fn(tensor):
+            
+            output_projecter = tf.layers.Dense(5, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+
+            stack_layers = 2
+        
+            with tf.variable_scope('encoder', reuse=tf.AUTO_REUSE):
+                #encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                
+                cells = []
+                
+                for _ in range(stack_layers):
+
+                    tmp_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                    tmp_cell = tf.contrib.rnn.DropoutWrapper(tmp_cell, self.dropout)
+                    cells.append(tmp_cell)
+
+                states = [cells[i].zero_state(self.conf['batch_size'], dtype=tf.float32) for i in range(stack_layers)]
+                cells = tf.contrib.rnn.MultiRNNCell(cells)
+                init_state = cells.zero_state(self.conf['batch_size'], dtype=tf.float32) 
+                encoder_output, final_state = tf.nn.dynamic_rnn(cells, self.inputs, initial_state=init_state, time_major=False,  scope='stacked_gru') 
+                encoder_output = tf.transpose(encoder_output, (1,0,2))
+                
+                self.decoder_output = project_fn(encoder_output[-1])
+                
                     
                     
     def baseline_LuongAtt_lstm_cls(self):

@@ -65,7 +65,7 @@ class config:
         conf['feature_size'] = None
         conf['sample_type'] = 'reg'
         conf['model'] = 'baseline_LuongAtt_lstm'
-        conf['checkpoint_dir'] = './model/baseline_reg_dropout_5feature'
+        conf['checkpoint_dir'] = './model/baseline_reg_dropout_5feature_test'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 30
         conf['predict_step'] = 5
@@ -88,22 +88,22 @@ class config:
         #conf['src_file_path'] = './Data/all_feature_data.pkl'
         conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
         conf['input_stocks'] = ['0050']
-        conf['train_period'] =  ['20130102', '20150811']
-        #conf['train_period'] = None
+        #conf['train_period'] =  ['20130102', '20150811']
+        conf['train_period'] = None
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
-        conf['feature_size'] = None
+        conf['feature_size'] = 1
         conf['sample_type'] = 'random'
         conf['model'] = 'baseline_LuongAtt_gru'
-        conf['checkpoint_dir'] = './model/baseline_reg_random_test'
+        conf['checkpoint_dir'] = '../model/baseline_reg_random_test_f1'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
-        conf['input_step'] = 30
+        conf['input_step'] = 200
         conf['predict_step'] = 5
         conf['batch_size'] = 32
         conf['train_eval_ratio'] = 0.2 
-        conf['n_linear_hidden_units'] = 16
-        conf['n_lstm_hidden_units'] = 16
+        conf['n_linear_hidden_units'] = 32
+        conf['n_lstm_hidden_units'] = 32
         
         #Session Control
         conf['save_ckpt_epoch'] = 101
@@ -139,6 +139,99 @@ class config:
         #Session Control
         conf['save_ckpt_epoch'] = 101
         conf['evaluation_epoch'] = 500
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
+
+    def test_onlyEnc_GRU(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        #conf['train_period'] =  ['20130102', '20150811']
+        conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = 44
+        conf['sample_type'] = 'random'
+        conf['model'] = 'baseline_encReg_gru'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_GRU'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 100
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 64
+        conf['n_lstm_hidden_units'] = 128
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 100
+        conf['evaluation_epoch'] = 100
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 601
+
+    def test_onlyEnc_biderect_gru(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        #conf['train_period'] =  ['20130102', '20150811']
+        conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = 44
+        conf['sample_type'] = 'random'
+        conf['model'] = 'baseline_encReg_biderect_gru'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 100
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 64
+        conf['n_lstm_hidden_units'] = 128
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 100
+        conf['evaluation_epoch'] = 100
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
+
+    def test_onlyEnc_stacked_gru(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        #conf['train_period'] =  ['20130102', '20150811']
+        conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = 44
+        conf['sample_type'] = 'random'
+        conf['model'] = 'baseline_encReg_stacked_gru'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_stacked_gru'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 100
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 64
+        conf['n_lstm_hidden_units'] = 64
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 100
+        conf['evaluation_epoch'] = 100
         conf['total_epoch'] = 100000
         conf['current_epoch'] = 0
 

@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../')
 import os
 import tensorflow as tf
 import numpy as np
@@ -68,6 +70,7 @@ def get_batch_random(data_set, train_step,batch_size, cur_index, feature_size=No
     train, label = np.split(batch, [train_step], axis=1)
    
     if feature_size == None: feature_size = np.shape(train)[-1]
+    #train = np.reshape(train[:,:,3], (batch_size, train_step, -1))
     train = train[:,:,:feature_size]
     label = label[:,:,3]
 
@@ -155,7 +158,7 @@ class sessionWrapper:
         
         batch_size =  self.conf['batch_size']
         Nbatch = len(train_set)//batch_size
-        
+  
         with self.sess as sess:
             
             if load_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name']):

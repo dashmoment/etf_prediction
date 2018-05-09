@@ -3,7 +3,7 @@ import netFactory as nf
 
 class model_zoo:
     
-    def __init__(self, conf, inputs, y_label, is_train, dropout = 0.6):
+    def __init__(self, conf, inputs, y_label, is_train = True, dropout = 0.6):
         
         self.conf = conf
         self.inputs = inputs
@@ -114,6 +114,39 @@ class model_zoo:
                 cells = tf.contrib.rnn.MultiRNNCell(cells)
                 init_state = cells.zero_state(self.conf['batch_size'], dtype=tf.float32) 
                 encoder_output, final_state = tf.nn.dynamic_rnn(cells, self.inputs, initial_state=init_state, time_major=False,  scope='stacked_gru') 
+                encoder_output = tf.transpose(encoder_output, (1,0,2))
+                
+                self.decoder_output = project_fn(encoder_output[-1])
+
+
+    def baseline_encReg_biderect_gru_cls(self):
+        
+        def project_fn(tensor):
+            
+            output_projecter = tf.layers.Dense(15, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+            d_layer = tf.reshape(d_layer, (-1,5,3))
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', initializer=tf.orthogonal_initializer(), reuse=tf.AUTO_REUSE):
+                #encoder_output, final_state = nf.encoder_GRU(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
+                fw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell, self.dropout)
+                bw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell, self.dropout)
+                
+                fw_init_state = fw_cell.zero_state(self.conf['batch_size'], dtype=tf.float32)
+                bw_init_state = bw_cell.zero_state(self.conf['batch_size'], dtype=tf.float32)  
+                encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, dtype="float32", scope='gru_bidection')
+                #encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, initial_state_fw=fw_init_state, initial_state_bw=bw_init_state, scope='gru_bidection')
+                encoder_output = tf.concat(encoder_output, 2)   
+                print(encoder_output)
                 encoder_output = tf.transpose(encoder_output, (1,0,2))
                 
                 self.decoder_output = project_fn(encoder_output[-1])

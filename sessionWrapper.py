@@ -76,6 +76,32 @@ def get_batch_random(data_set, train_step,batch_size, cur_index, feature_size=No
 
     return train, label
 
+def get_batch_random_cls(data_set, train_step,batch_size, cur_index, feature_size=None):
+    
+    #data_set: [None, time_step, features ]
+    #batch_idx: index of batch start point
+
+    sample_step = train_step + 5
+
+    batch = []
+
+    for i in range(batch_size):
+        
+        rnd = random.randint(0,len(data_set)-sample_step)
+        tmpbatch =  np.reshape(data_set[rnd:rnd + sample_step, :], (1, sample_step, -1))
+        batch.append(tmpbatch)
+    
+    batch = np.squeeze(np.array(batch))
+    train, label = np.split(batch, [train_step], axis=1)
+   
+    if feature_size == None: feature_size = np.shape(train)[-1]
+    #train = np.reshape(train[:,:,3], (batch_size, train_step, -1))
+    train = train[:,:,:feature_size]
+    label = label[:,:,44:]
+
+    return train, label
+
+
 def get_batch_cls(data_set, train_step, batch_size, cur_index, feature_size=None):
     
     #data_set: [None, time_step, features ]
@@ -142,6 +168,7 @@ class sessionWrapper:
                               'cls':get_batch_cls,
                               '2in1':get_batch_2in1,
                               'random':get_batch_random,
+                              'random_cls':get_batch_random_cls,
                               'test':get_batch_test
                               }
                               
@@ -170,7 +197,7 @@ class sessionWrapper:
 
                 epoch += 1
                 pbar.update(1)
-                if  self.conf['sample_type'] != 'random': np.random.shuffle(train_set)
+                if  'random' not in self.conf['sample_type'] : np.random.shuffle(train_set)
                 #else: print('random')
                 
                 #Cehck variable reused

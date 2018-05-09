@@ -249,14 +249,14 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
-        conf['feature_size'] = 44
+        conf['feature_size'] = 10
         conf['sample_type'] = 'random_cls'
         conf['model'] = 'baseline_encReg_biderect_gru_cls'
-        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_orth_init_cls'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_orth_init_cls_v4'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
-        conf['input_step'] = 10
-        conf['predict_step'] = 1
-        conf['batch_size'] = 32
+        conf['input_step'] = 100
+        conf['predict_step'] = 5
+        conf['batch_size'] = 128
         conf['train_eval_ratio'] = 0.2 
         conf['n_linear_hidden_units'] = 64
         conf['n_lstm_hidden_units'] = 128
@@ -265,7 +265,7 @@ class config:
         conf['save_ckpt_epoch'] = 10
         conf['evaluation_epoch'] = 20
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 0
+        conf['current_epoch'] = 3317
 
     def test_onlyEnc_stacked_gru(self):
         

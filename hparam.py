@@ -204,23 +204,24 @@ class config:
         conf['total_epoch'] = 100000
         conf['current_epoch'] = 0
 
-    def test_onlyEnc_biderect_gru_cls(self):
+    def test_onlyEnc_biderect_gru_mstock(self):
         
         conf = self.config['common']   
         
         #Data Attributes
-        #conf['src_file_path'] = './Data/all_feature_data.pkl'
         conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
-        conf['input_stocks'] = ['0050']
-        #conf['train_period'] =  ['20130102', '20150811']
-        conf['train_period'] = None
+        #conf['input_stocks'] = ['0050']
+        
+        conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204']
+        #conf['train_period'] =  ['20130102', '20180711']
+        conf['train_period'] =  ['20130102', '20180711']
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
         conf['feature_size'] = 44
-        conf['sample_type'] = 'random_cls'
-        conf['model'] = 'baseline_encReg_biderect_gru_cls'
-        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_orth_init_cls'
+        conf['sample_type'] = 'random'
+        conf['model'] = 'baseline_encReg_biderect_gru'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_mstocks'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 100
         conf['predict_step'] = 5
@@ -232,6 +233,37 @@ class config:
         #Session Control
         conf['save_ckpt_epoch'] = 100
         conf['evaluation_epoch'] = 100
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 400
+
+    def test_onlyEnc_biderect_gru_cls(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+        #conf['src_file_path'] = './Data/all_feature_data.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
+        conf['input_stocks'] = ['0050']
+        conf['train_period'] =  ['20130102', '20170811']
+        #conf['train_period'] = None
+        conf['eval_period'] =  ['20170311', '20180402']
+        
+        #Model Attributes
+        conf['feature_size'] = 44
+        conf['sample_type'] = 'random_cls'
+        conf['model'] = 'baseline_encReg_biderect_gru_cls'
+        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_orth_init_cls'
+        conf['ckpt_name'] = 'baseline_reg.ckpt'
+        conf['input_step'] = 10
+        conf['predict_step'] = 1
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 64
+        conf['n_lstm_hidden_units'] = 128
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 10
+        conf['evaluation_epoch'] = 20
         conf['total_epoch'] = 100000
         conf['current_epoch'] = 0
 

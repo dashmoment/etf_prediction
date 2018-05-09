@@ -18,9 +18,9 @@ train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_s
 if c['feature_size'] == None: c['feature_size'] = train.shape[-1]
 #x = tf.placeholder(tf.float32, [None, c['input_step'], train.shape[-1]])
 x = tf.placeholder(tf.float32, [None, c['input_step'], c['feature_size']])
-y = tf.placeholder(tf.float32, [None, c['predict_step'], 3]) 
+y = tf.placeholder(tf.float32, [None,  3]) 
 
-decoder_output = mz.model_zoo(c, x, y, dropout = 0.6, is_train = True).decoder_output
+decoder_output = mz.model_zoo(c, x, y, dropout = 1.0, is_train = False).decoder_output
 decoder_output_eval = mz.model_zoo(c, x, y, dropout = 1.0, is_train = False).decoder_output
 
 predict_train = tf.argmax(tf.nn.softmax(decoder_output), axis=-1)
@@ -36,10 +36,10 @@ for tf_var in tf.trainable_variables():
         l2_reg_loss +=  tf.reduce_mean(tf.nn.l2_loss(tf_var))
         
 
-loss = l.cross_entropy_loss(decoder_output, y) + 0.003*l2_reg_loss
-loss_eval = l.cross_entropy_loss(decoder_output_eval, y)
-#train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-train_op = tf.train.RMSPropOptimizer(1e-2, 0.9).minimize(loss)
+loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=decoder_output))
+loss_eval = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=decoder_output_eval))
+train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
+#train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('cross_entropy_loss', loss, collections=['train'])
@@ -50,12 +50,54 @@ with tf.name_scope('validatin_summary'):
     tf.summary.scalar('cross_entropy_loss', loss_eval, collections=['validatin'])
     tf.summary.scalar('accuracy', accuracy_eval, collections=['validatin'])
     merged_summary_val = tf.summary.merge_all('validatin') 
+    
+import random
+import numpy as np
+def get_batch_random_cls(data_set, train_step,batch_size, cur_index, feature_size=None):
+    
+    #data_set: [None, time_step, features ]
+    #batch_idx: index of batch start point
 
-sess = sesswrapper.sessionWrapper(	c, x, y, loss_eval, c['input_step'],
-									loss, train_op, merged_summary_train, 
-									merged_summary_val)
+    sample_step = train_step + 1
 
-sess.run(train, validation)
+    batch = []
+
+    for i in range(batch_size):
+        
+        rnd = random.randint(0,len(data_set)-sample_step)
+        tmpbatch =  np.reshape(data_set[rnd:rnd + sample_step, :], (1, sample_step, -1))
+        batch.append(tmpbatch)
+    
+    batch = np.squeeze(np.array(batch))
+    train, label = np.split(batch, [train_step], axis=1)
+   
+    if feature_size == None: feature_size = np.shape(train)[-1]
+    #train = np.reshape(train[:,:,3], (batch_size, train_step, -1))
+    train = train[:,:,:feature_size]
+    label = label[:,0,44:]
+
+    return train, label
+
+lloss = []
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    for i in range(10000):
+        
+        train_data, train_label = get_batch_random_cls(train, 10, 32, 0,  44)
+        _, l, p = sess.run([train_op, loss, decoder_output], feed_dict={x:train_data, y:train_label})
+        print(i, '  ', l)
+        lloss.append(l)
+    
+import matplotlib.pyplot as plt
+plt.plot(lloss)
+
+#sess = sesswrapper.sessionWrapper(	c, x, y, loss_eval, c['input_step'],
+#									loss, train_op, merged_summary_train, 
+#									merged_summary_val)
+#
+#sess.run(train, validation)
 
 
 

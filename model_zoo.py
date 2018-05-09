@@ -78,7 +78,6 @@ class model_zoo:
                 encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, dtype="float32", scope='gru_bidection')
                 #encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, initial_state_fw=fw_init_state, initial_state_bw=bw_init_state, scope='gru_bidection')
                 encoder_output = tf.concat(encoder_output, 2)   
-                print(encoder_output)
                 encoder_output = tf.transpose(encoder_output, (1,0,2))
                 
                 self.decoder_output = project_fn(encoder_output[-1])
@@ -120,15 +119,25 @@ class model_zoo:
 
 
     def baseline_encReg_biderect_gru_cls(self):
+
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+
+            cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+            init_state = cell.zero_state(self.conf['batch_size'], dtype=tf.float32) 
+            encoder_output,final_state = tf.nn.dynamic_rnn(cell, self.inputs, initial_state=init_state)
+            encoder_output = tf.transpose(encoder_output, (1,0,2))
+            output_projecter = tf.layers.Dense(3, name="output_project",  activation=tf.nn.sigmoid) 
+            self.decoder_output = output_projecter(encoder_output[-1]) 
+
+        '''
         
         def project_fn(tensor):
             
-            output_projecter = tf.layers.Dense(15, name="output_project")  
+            output_projecter = tf.layers.Dense(3, name="output_project",  activation=tf.nn.sigmoid)  
         
             if self.is_train:
                 tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
             d_layer = output_projecter(tensor)
-            d_layer = tf.reshape(d_layer, (-1,5,3))
                     
             return d_layer
         
@@ -146,11 +155,10 @@ class model_zoo:
                 encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, dtype="float32", scope='gru_bidection')
                 #encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, initial_state_fw=fw_init_state, initial_state_bw=bw_init_state, scope='gru_bidection')
                 encoder_output = tf.concat(encoder_output, 2)   
-                print(encoder_output)
                 encoder_output = tf.transpose(encoder_output, (1,0,2))
                 
                 self.decoder_output = project_fn(encoder_output[-1])
-    
+        '''
 #==============================Seq2Seq===================================================           
         
     def baseline_LuongAtt_lstm(self):

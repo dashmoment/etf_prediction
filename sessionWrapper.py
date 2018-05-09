@@ -81,7 +81,7 @@ def get_batch_random_cls(data_set, train_step,batch_size, cur_index, feature_siz
     #data_set: [None, time_step, features ]
     #batch_idx: index of batch start point
 
-    sample_step = train_step + 5
+    sample_step = train_step + 1
 
     batch = []
 
@@ -97,7 +97,7 @@ def get_batch_random_cls(data_set, train_step,batch_size, cur_index, feature_siz
     if feature_size == None: feature_size = np.shape(train)[-1]
     #train = np.reshape(train[:,:,3], (batch_size, train_step, -1))
     train = train[:,:,:feature_size]
-    label = label[:,:,44:]
+    label = label[:,0,44:]
 
     return train, label
 

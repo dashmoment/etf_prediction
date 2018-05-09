@@ -27,8 +27,8 @@ decoder_output_eval = mz.model_zoo(c, x, y, dropout = 1.0, is_train = False).dec
 
 loss = l.l2loss(decoder_output, y)
 loss_eval = l.l2loss(decoder_output_eval, y)
-#train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
+train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
+#train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('l2loss', loss, collections=['train'])

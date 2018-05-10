@@ -10,7 +10,7 @@ import loss_func as l
 tf.reset_default_graph()  
 
 c = conf.config('test_onlyEnc_biderect_gru_cls').config['common']
-c['src_file_path'] = '../Data/all_feature_data.pkl'
+#c['src_file_path'] = '../Data/all_feature_data.pkl'
 
 tv_gen = dp.train_validation_generaotr()
 if 'random' in c['sample_type']:  tv_gen.generate_train_val_set =  tv_gen.generate_train_val_set_random
@@ -37,10 +37,10 @@ for tf_var in tf.trainable_variables():
         l2_reg_loss +=  tf.reduce_mean(tf.nn.l2_loss(tf_var))
         
 
-loss = l.cross_entropy_loss(decoder_output, y)
+loss = l.cross_entropy_loss(decoder_output, y) 
 loss_eval = l.cross_entropy_loss(decoder_output_eval, y)
 #train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
+train_op = tf.train.RMSPropOptimizer(1e-2, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('cross_entropy_loss', loss, collections=['train'])
@@ -51,6 +51,13 @@ with tf.name_scope('validatin_summary'):
     tf.summary.scalar('cross_entropy_loss', loss_eval, collections=['validatin'])
     tf.summary.scalar('accuracy', accuracy_eval, collections=['validatin'])
     merged_summary_val = tf.summary.merge_all('validatin') 
+    
+    
+sess = sesswrapper.sessionWrapper(	c, x, y, loss_eval, c['input_step'],
+									loss, train_op, merged_summary_train, 
+									merged_summary_val)
+
+sess.run(train, validation)
     
 #import random
 #import numpy as np
@@ -75,7 +82,7 @@ with tf.name_scope('validatin_summary'):
 #    if feature_size == None: feature_size = np.shape(train)[-1]
 #    #train = np.reshape(train[:,:,3], (batch_size, train_step, -1))
 #    train = train[:,:,:feature_size]
-#    label = label[:,:,10:]
+#    label = label[:,:,44:]
 #
 #    return train, label
 #
@@ -87,7 +94,7 @@ with tf.name_scope('validatin_summary'):
 #    
 #    for i in range(100000):
 #        
-#        train_data, train_label = get_batch_random_cls(train, 10, c['batch_size'], 0,  c['feature_size'])
+#        train_data, train_label = get_batch_random_cls(train, 100, c['batch_size'], 0,  c['feature_size'])
 #        _, l, p = sess.run([train_op, loss, decoder_output], feed_dict={x:train_data, y:train_label})
 #        tvars = tf.trainable_variables()
 #        tvars_vals = sess.run(tvars[-2])
@@ -98,11 +105,7 @@ with tf.name_scope('validatin_summary'):
 #import matplotlib.pyplot as plt
 #plt.plot(lloss)
 
-sess = sesswrapper.sessionWrapper(	c, x, y, loss_eval, c['input_step'],
-									loss, train_op, merged_summary_train, 
-									merged_summary_val)
 
-sess.run(train, validation)
 
 
 

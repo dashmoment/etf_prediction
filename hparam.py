@@ -221,11 +221,11 @@ class config:
         conf['feature_size'] = 44
         conf['sample_type'] = 'random'
         conf['model'] = 'baseline_encReg_biderect_gru'
-        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_mstocks'
+        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_mstocks'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
-        conf['input_step'] = 100
+        conf['input_step'] = 50
         conf['predict_step'] = 5
-        conf['batch_size'] = 32
+        conf['batch_size'] = 128
         conf['train_eval_ratio'] = 0.2 
         conf['n_linear_hidden_units'] = 64
         conf['n_lstm_hidden_units'] = 128
@@ -234,7 +234,7 @@ class config:
         conf['save_ckpt_epoch'] = 100
         conf['evaluation_epoch'] = 100
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 400
+        conf['current_epoch'] = 8764
 
     def test_onlyEnc_biderect_gru_cls(self):
         
@@ -249,23 +249,23 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
-        conf['feature_size'] = 10
+        conf['feature_size'] = 44
         conf['sample_type'] = 'random_cls'
         conf['model'] = 'baseline_encReg_biderect_gru_cls'
-        conf['checkpoint_dir'] = '../model/test_onlyEnc_biderect_gru_orth_init_cls_v4'
+        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_orth_init_cls_t100'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
         conf['input_step'] = 100
         conf['predict_step'] = 5
         conf['batch_size'] = 128
         conf['train_eval_ratio'] = 0.2 
         conf['n_linear_hidden_units'] = 64
-        conf['n_lstm_hidden_units'] = 128
+        conf['n_lstm_hidden_units'] = 64
         
         #Session Control
-        conf['save_ckpt_epoch'] = 10
-        conf['evaluation_epoch'] = 20
+        conf['save_ckpt_epoch'] = 101
+        conf['evaluation_epoch'] = 200
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 3317
+        conf['current_epoch'] = 0
 
     def test_onlyEnc_stacked_gru(self):
         

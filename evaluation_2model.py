@@ -17,8 +17,9 @@ close_price_mean_var = pickle.load(f)
 mean = close_price_mean_var.mean_[0]
 std = np.sqrt(close_price_mean_var.var_[0])
 
-c = conf.config('test_onlyEnc_biderect_gru').config['common']
-c['checkpoint_dir'] = './model/test_onlyEnc_biderect_gru_orth_init'
+c = conf.config('test_onlyEnc_biderect_gru_mstock').config['common']
+#c['checkpoint_dir'] = './model/test_onlyEnc_biderect_gru_orth_init'
+c['input_stocks'] = ['0050']
 sample_step = c['input_step'] +  c['predict_step']
 
 tv_gen = dp.train_validation_generaotr()
@@ -92,7 +93,7 @@ with tf.Session() as sess:
                 
 tf.reset_default_graph()              
 c = conf.config('test_onlyEnc_biderect_gru_cls').config['common']
-c['checkpoint_dir'] = './model/test_onlyEnc_biderect_gru_orth_init_cls'
+#c['checkpoint_dir'] = './model/test_onlyEnc_biderect_gru_orth_init_cls'
 sample_step = c['input_step'] +  c['predict_step']
 
 

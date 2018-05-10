@@ -7,11 +7,11 @@ import numpy as np
 
 
 import pickle
-f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data.pkl', 'rb')
+f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
 _ = pickle.load(f)
 _ = pickle.load(f)
 _ = pickle.load(f)
-_ = pickle.load(f)
+l = pickle.load(f)
 close_price_mean_var = pickle.load(f)
 
 mean = close_price_mean_var.mean_[0]

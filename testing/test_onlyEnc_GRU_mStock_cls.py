@@ -1,25 +1,25 @@
 import sys
 sys.path.append('../')
 import tensorflow as tf
-import numpy as np
 import hparam as conf
 import sessionWrapper as sesswrapper
 import data_process_list as dp
 import model_zoo as mz
 import loss_func as l
+import numpy as np
 
 tf.reset_default_graph()  
 
-c = conf.config('test_onlyEnc_biderect_gru_cls').config['common']
+c = conf.config('test_onlyEnc_biderect_gru_mstock_cls').config['common']
 #c['src_file_path'] = '../Data/all_feature_data.pkl'
 
 tv_gen = dp.train_validation_generaotr()
 if 'random' in c['sample_type']:  tv_gen.generate_train_val_set =  tv_gen.generate_train_val_set_random
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
 sample_window = c['input_step'] + c['predict_step']
-if len(np.shape(train)) > 3:
-    train = np.reshape(np.transpose(train,(0,3,1,2)), (-1,sample_window,np.shape(train)[-2]))
-    validation = np.reshape(np.transpose(validation,(0,3,1,2)), (-1,sample_window,np.shape(validation)[-2]))
+if len(np.shape(train)) > 2:
+    train = np.reshape(np.transpose(train,(0,2,1)), (-1,np.shape(train)[-2]))
+    validation = np.reshape(np.transpose(validation,(0,2,1)), (-1,np.shape(validation)[-2]))
 
 
 if c['feature_size'] == None: c['feature_size'] = train.shape[-1]
@@ -65,51 +65,7 @@ sess = sesswrapper.sessionWrapper(	c, x, y, loss_eval, c['input_step'],
 
 sess.run(train, validation)
     
-#import random
-#import numpy as np
-#def get_batch_random_cls(data_set, train_step,batch_size, cur_index, feature_size=None):
-#    
-#    #data_set: [None, time_step, features ]
-#    #batch_idx: index of batch start point
-#
-#    sample_step = train_step + 5
-#
-#    batch = []
-#
-#    for i in range(batch_size):
-#        
-#        rnd = random.randint(0,len(data_set)-sample_step)
-#        tmpbatch =  np.reshape(data_set[rnd:rnd + sample_step, :], (1, sample_step, -1))
-#        batch.append(tmpbatch)
-#    
-#    batch = np.squeeze(np.array(batch))
-#    train, label = np.split(batch, [train_step], axis=1)
-#   
-#    if feature_size == None: feature_size = np.shape(train)[-1]
-#    #train = np.reshape(train[:,:,3], (batch_size, train_step, -1))
-#    train = train[:,:,:feature_size]
-#    label = label[:,:,44:]
-#
-#    return train, label
-#
-#lloss = []
-#train_val = []
-#
-#with tf.Session() as sess:
-#    sess.run(tf.global_variables_initializer())
-#    
-#    for i in range(100000):
-#        
-#        train_data, train_label = get_batch_random_cls(train, 100, c['batch_size'], 0,  c['feature_size'])
-#        _, l, p = sess.run([train_op, loss, decoder_output], feed_dict={x:train_data, y:train_label})
-#        tvars = tf.trainable_variables()
-#        tvars_vals = sess.run(tvars[-2])
-#        train_val.append(tvars_vals)
-#        print(i, '  ', l)
-#        lloss.append(l)
-#    
-#import matplotlib.pyplot as plt
-#plt.plot(lloss)
+
 
 
 

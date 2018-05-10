@@ -183,14 +183,25 @@ class train_validation_generaotr:
         return self.get_test_data(train_windows, testSet)
     
 
-#Simple Demo
+#########Simple Demo#############
+#import math
+#
 #filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
 #tv_gen = train_validation_generaotr()
 #f = pd.read_pickle(filepath)
-#stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208', '00690', '00692', '00701', '00713']
-
-#testSet = tv_gen.generate_test_set(filepath, stocks, 30)
-
+#stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208']
+#stocks_s = ['00690', '00692', '00701', '00713']
+#testSet = tv_gen._load_data(filepath)
+#stock_2 = testSet.loc[stocks]
+#stock = {}
+#
+#stock_2 = testSet.loc['00690']
+#new_stock = []
+#for i in range(len(stock_2)):
+#    if not any([math.isnan(val) for val in stock_2.iloc[i]]):
+#        new_stock.append(stock_2.iloc[i])
+#for s in stocks:
+#    stock[s] = testSet.loc[s].dropna(axis=[0])
 
 
 

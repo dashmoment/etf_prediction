@@ -185,58 +185,74 @@ class train_validation_generaotr:
 
 #########Simple Demo#############
         
-import pickle
-f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
-_ = pickle.load(f)
-_ = pickle.load(f)
-_ = pickle.load(f)
-index_dict = pickle.load(f)
-
-stock_list =  ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204','006208']
-special_list = {
-                '00690':"20170330", 
-                '00692':"20170516", 
-                '00701':"20170816", 
-                '00713':"20170927"}
-
-filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'
-tv_gen = train_validation_generaotr()
-testSet = tv_gen._load_data(filepath)
-
-clean_stock = {}
-missin_feature = []
-
-for s in special_list:
+def read_special_data():
+        
+    import pickle
+    f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
+    _ = pickle.load(f)
+    _ = pickle.load(f)
+    _ = pickle.load(f)
+    index_dict = pickle.load(f)
     
-    mask = (testSet.columns > special_list[s]) 
-    cut_testSet = testSet.iloc[:,mask]
-
-    stock_s = cut_testSet.loc[s]
-   
-    clean_set = []
-    [clean_set.append(row) for row in stock_s]
-
-    clean_set = np.vstack(clean_set)
+    stock_list =  ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204','006208']
+    special_list = {
+                    '00690':"20170330", 
+                    '00692':"20170516", 
+                    '00701':"20170816", 
+                    '00713':"20170927"}
     
-    tmpDF = pd.DataFrame(clean_set, columns=index_dict)
-    missin_feature.append(tmpDF.columns[tmpDF.isnull().any()].tolist())
-    tmpDF = tmpDF.dropna(axis=[1]) 
-    clean_stock[s] = tmpDF
+    filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'
+    tv_gen = train_validation_generaotr()
+    testSet = tv_gen._load_data(filepath)
+    
+    clean_stock = {}
+    missin_feature = []
+    
+    for s in special_list:
+        
+        mask = (testSet.columns > special_list[s]) 
+        cut_testSet = testSet.iloc[:,mask]
+    
+        stock_s = cut_testSet.loc[s]
+       
+        clean_set = []
+        [clean_set.append(row) for row in stock_s]
+    
+        clean_set = np.vstack(clean_set)
+        
+        tmpDF = pd.DataFrame(clean_set, columns=index_dict)
+        missin_feature.append(tmpDF.columns[tmpDF.isnull().any()].tolist())
+        tmpDF = tmpDF.dropna(axis=[1]) 
+        clean_stock[s] = tmpDF
+    
+    all_stock_list = stock_list + ["00690", "00692", "00701", "00713"]
+    for s in stock_list:
+        stock = testSet.loc[s]
+        clean_set = []
+        [clean_set.append(row) for row in stock]
+        clean_set = np.vstack(clean_set)
+        tmpDF = pd.DataFrame(clean_set, columns=index_dict)
+        clean_stock[s] = tmpDF.drop(missin_feature[-1], axis=1)  
+        
+    train = []
+    validation = []
+    for s in all_stock_list:
+        
+        tmp_train, tmp_validation = tv_gen._split_train_val(clean_stock[s], 50, 5, 0.2)
+        train.append(tmp_train)
+        validation.append(tmp_validation)
+        
+    train = np.vstack(train)
+    validation = np.vstack(validation)
+    
+    return train, validation
 
-
-for s in stock_list:
-    stock = testSet.loc[s]
-    clean_set = []
-    [clean_set.append(row) for row in stock]
-    clean_set = np.vstack(clean_set)
-    tmpDF = pd.DataFrame(clean_set, columns=index_dict)
-    clean_stock[s] = tmpDF.drop(missin_feature[-1], axis=1)  
-
-
-train_data = []
-for s in clean_stock:
-    train_data.append(np.array(clean_stock[s]))
-train_data = np.vstack(train_data)
+###############################################################################
+    
+#train_data = []
+#for s in clean_stock:
+#    train_data.append(np.array(clean_stock[s]))    
+#train_data = np.vstack(train_data)
 
         
         

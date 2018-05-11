@@ -17,7 +17,7 @@ tv_gen = dp.train_validation_generaotr()
 if 'random' in c['sample_type']:  tv_gen.generate_train_val_set =  tv_gen.generate_train_val_set_random
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
 sample_window = c['input_step'] + c['predict_step']
-if len(np.shape(train)) > 2:
+if len(np.shape(train)) > 3:
     train = np.reshape(np.transpose(train,(0,2,1)), (-1,np.shape(train)[-2]))
     validation = np.reshape(np.transpose(validation,(0,2,1)), (-1,np.shape(validation)[-2]))
 

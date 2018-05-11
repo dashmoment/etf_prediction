@@ -20,7 +20,7 @@ if c['feature_size'] == None: c['feature_size'] = train.shape[-1]
 x = tf.placeholder(tf.float32, [None, c['input_step'], c['feature_size']])
 y = tf.placeholder(tf.float32, [None, c['predict_step']]) 
 
-decoder_output = mz.model_zoo(c, x, y, dropout = 0.6, is_train = True).decoder_output
+decoder_output = mz.model_zoo(c, x, y, dropout = 0.8, is_train = True).decoder_output
 decoder_output_eval = mz.model_zoo(c, x, y, dropout = 1.0, is_train = False).decoder_output
 
 l2_reg_loss = 0

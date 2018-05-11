@@ -17,7 +17,7 @@ tv_gen = dp.train_validation_generaotr()
 if 'random' in c['sample_type']:  tv_gen.generate_train_val_set =  tv_gen.generate_train_val_set_random
 train, validation = tv_gen.generate_train_val_set(c['src_file_path'], c['input_stocks'], c['input_step'], c['predict_step'], c['train_eval_ratio'], c['train_period'])
 sample_window = c['input_step'] + c['predict_step']
-if len(np.shape(train)) > 2:
+if len(np.shape(train)) > 3:
     train = np.reshape(np.transpose(train,(0,2,1)), (-1,np.shape(train)[-2]))
     validation = np.reshape(np.transpose(validation,(0,2,1)), (-1,np.shape(validation)[-2]))
 
@@ -27,7 +27,7 @@ if c['feature_size'] == None: c['feature_size'] = train.shape[-1]
 x = tf.placeholder(tf.float32, [None, c['input_step'], c['feature_size']])
 y = tf.placeholder(tf.float32, [None, c['predict_step'], 3]) 
 
-decoder_output = mz.model_zoo(c, x, y, dropout = 0.6, is_train = True).decoder_output
+decoder_output = mz.model_zoo(c, x, y, dropout = 0.8, is_train = True).decoder_output
 decoder_output_eval = mz.model_zoo(c, x, y, dropout = 1.0, is_train = False).decoder_output
 
 predict_train = tf.argmax(tf.nn.softmax(decoder_output), axis=-1)
@@ -46,7 +46,7 @@ for tf_var in tf.trainable_variables():
 loss = l.cross_entropy_loss(decoder_output, y) 
 loss_eval = l.cross_entropy_loss(decoder_output_eval, y)
 #train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
+train_op = tf.train.RMSPropOptimizer(1e-2, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('cross_entropy_loss', loss, collections=['train'])

@@ -177,6 +177,7 @@ class sessionWrapper:
     def run(self, train_set, test_set):
         
         get_batch = self.sample_method [self.conf['sample_type']]
+        print('Sample Type:{}'.format(self.conf['sample_type']))
         
         epoch =  self.conf['current_epoch']
         pbar = tqdm(total =  self.conf['total_epoch'])
@@ -185,8 +186,8 @@ class sessionWrapper:
         eval_bar.update(epoch)
         
         batch_size =  self.conf['batch_size']
-        Nbatch = len(train_set)//batch_size
-  
+        #Nbatch = len(train_set)//batch_size
+        Nbatch = 20
         with self.sess as sess:
             
             if load_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name']):
@@ -198,7 +199,8 @@ class sessionWrapper:
 
                 epoch += 1
                 pbar.update(1)
-                if  'random' not in self.conf['sample_type'] : np.random.shuffle(train_set)
+                if  'random' not in self.conf['sample_type'] and self.conf['input_stocks'] == 1 : 
+                    np.random.shuffle(train_set)
                 #else: print('random')
                 
                 #Cehck variable reused

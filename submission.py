@@ -45,12 +45,12 @@ def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):
 
 
 
-stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208']
-#'00690', '00692', '00701', '00713'
+stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208','00690', '00692', '00701', '00713']
+
 
 
 ############### Predict Price ###############
-c = conf.config('test_onlyEnc_biderect_gru_mstock').config['common']   
+c = conf.config('test_onlyEnc_biderect_gru_allstock').config['common']   
 c['batch_size'] = 1
 tv_gen = dp.train_validation_generaotr()  
 eval_set  = tv_gen.generate_test_set(c['src_file_path'], stocks, c['input_step']) 
@@ -83,7 +83,7 @@ with tf.Session() as sess:
 
 ############### Predict up-down ###############
 
-c = conf.config('test_onlyEnc_biderect_gru_cls').config['common']   
+c = conf.config('test_onlyEnc_biderect_gru_allstock_cls').config['common']   
 c['batch_size'] = 1 
 tv_gen = dp.train_validation_generaotr()  
 eval_set  = tv_gen.generate_test_set(c['src_file_path'], stocks, c['input_step']) 
@@ -124,8 +124,8 @@ idx = 0
 for s in stocks:     
     results = [s]
     for i in range(5):
-        results.append(predict[s]['price'][i])
         results.append(predict[s]['ud'][i])
+        results.append(predict[s]['price'][i])
     
     df.loc[idx] = results
     idx+=1

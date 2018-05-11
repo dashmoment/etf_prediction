@@ -235,7 +235,7 @@ class config:
         conf['save_ckpt_epoch'] = 100
         conf['evaluation_epoch'] = 100
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 8764
+        conf['current_epoch'] = 24564
 
     def test_onlyEnc_biderect_gru_mstock_cls(self):
         
@@ -255,14 +255,14 @@ class config:
         conf['feature_size'] = 59
         conf['sample_type'] = 'random_cls'
         conf['model'] = 'baseline_encReg_biderect_gru_cls'
-        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_mstocks_cls_f192t100'
+        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_mstocks_cls_f128t50'
         conf['ckpt_name'] = 'baseline_reg.ckpt'
-        conf['input_step'] = 80
+        conf['input_step'] = 50
         conf['predict_step'] = 5
-        conf['batch_size'] = 96
+        conf['batch_size'] = 128
         conf['train_eval_ratio'] = 0.2 
         conf['n_linear_hidden_units'] = 64
-        conf['n_lstm_hidden_units'] = 192
+        conf['n_lstm_hidden_units'] = 128
         
         #Session Control
         conf['save_ckpt_epoch'] = 100

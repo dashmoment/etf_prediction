@@ -22,14 +22,14 @@ sample_step = c['input_step'] +  c['predict_step']
 rand = 0
 for i in range(0, 38500, 35):
     
-   # rand = random.random() * 2 * math.pi
+    rand = random.random() * 2 * math.pi
     
-    if rand >= 1:
-        rand = 0
-    else:
-        rand += 0.1
-    
-    rand = rand * 2 * math.pi
+#    if rand >= 1:
+#        rand = 0
+#    else:
+#        rand += 0.1
+#    
+#    rand = rand * 2 * math.pi
     
     if i < 35000:
 
@@ -108,7 +108,7 @@ with tf.Session() as sess:
     
     sess.run(tf.global_variables_initializer())
     
-    for i in tqdm(range(1000)):
+    for i in tqdm(range(2000)):
     
         data = list(zip(train_data, train_labels))
         np.random.shuffle(data)

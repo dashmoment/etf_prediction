@@ -254,11 +254,10 @@ class model_zoo:
                 encoder_output, final_state = nf.encoder(self.inputs,  self.conf['n_linear_hidden_units'], self.conf['n_lstm_hidden_units'], self.conf['batch_size'])
                 decoder_cell = nf.attention_lstm_cell(encoder_output, self.conf['n_lstm_hidden_units'])              
                 #decoder_cell = tf.contrib.rnn.BasicLSTMCell(self.conf['n_lstm_hidden_units'])
-                decoder_cell = tf.nn.rnn_cell.DropoutWrapper(decoder_cell, output_keep_prob = self.dropout)
-                       
+       
             with tf.variable_scope('decoder', reuse=tf.AUTO_REUSE):  
                 
-        
+              
                 if self.is_train:
                     self.decoder_output, _  = nf.decoder_cls(self.conf['batch_size'], decoder_cell, project_fn, self.y_label , 
                                                          final_state, self.conf['predict_step'], dropout = self.dropout, is_train = True)

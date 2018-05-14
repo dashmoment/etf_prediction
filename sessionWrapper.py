@@ -1,41 +1,11 @@
-import sys
-sys.path.append('../')
 import os
 import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 import random
+from utility import tf_utility as ut
 
 
-def load_ckpt(saver, sess, checkpoint_dir, ckpt_name=""):
-        """
-        Load the checkpoint. 
-        According to the scale, read different folder to load the models.
-        """     
-        
-        print(" [*] Reading checkpoints...")
-#       
-        ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
-
-
-        if ckpt  and ckpt.model_checkpoint_path:
-            ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
-            saver.restore(sess, os.path.join(checkpoint_dir, ckpt_name))
-        
-            return True
-        
-        else:
-            return False 
-
-def save_ckpt(saver, sess, checkpoint_dir, ckpt_name, step):
-    
-    print(" [*] Saving checkpoints...step: [{}]".format(step))
-    if not os.path.exists(checkpoint_dir):
-        os.makedirs(checkpoint_dir)
-
-    saver.save(sess, 
-               os.path.join(checkpoint_dir, ckpt_name),
-               global_step=step)
 
 def get_batch(data_set, train_step,batch_size, cur_index, feature_size=None):
     
@@ -128,7 +98,7 @@ def get_batch_2in1(data_set, train_step,batch_size, cur_index,  feature_size=Non
     if feature_size == None: feature_size = np.shape(train)[-1]
     train = train[:,:,:feature_size]
     
-    label_ud = label[:,:,10:13]
+    label_ud = label[:,:,-3:]
     label_p = label[:,:,3]
     label = np.dstack([label_p,label_ud])
 
@@ -186,11 +156,15 @@ class sessionWrapper:
         eval_bar.update(epoch)
         
         batch_size =  self.conf['batch_size']
-        #Nbatch = len(train_set)//batch_size
-        Nbatch = 20
+        Nbatch = len(train_set)//batch_size
+        if Nbatch > 20:
+            Nbatch = 20
+        else:
+            Nbatch = Nbatch
+            
         with self.sess as sess:
             
-            if load_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name']):
+            if ut.load_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name']):
                 print(" [*] Load SUCCESS")
             else:
                 print(" [!] Load failed...")
@@ -202,14 +176,6 @@ class sessionWrapper:
                 if  'random' not in self.conf['sample_type']: 
                     pbar.set_description('Shuffle Data')
                     np.random.shuffle(train_set)
-                #else: print('random')
-                
-                #Cehck variable reused
-#                tvars = tf.trainable_variables()
-#                tvars_vals = sess.run(tvars)
-#                for var, val in zip(tvars, tvars_vals):
-#                    print(var.name)
-#                break
 
                 for i in range(Nbatch):
                     batch_index = i*batch_size
@@ -220,7 +186,7 @@ class sessionWrapper:
                     train_data, train_label = get_batch(train_set, self.train_step, batch_size, random.randint(0,len(train_set)//batch_size), self.conf['feature_size'])
                     l2loss, train_sum =  sess.run([self.loss, self.train_summary], feed_dict={self.x:train_data, self.y:train_label})
                     self.summary_writer.add_summary(train_sum, epoch)
-                    save_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name'], epoch)
+                    ut.save_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name'], epoch)
                     pbar.set_description('train l2loss: {}'.format(l2loss))    
 				
                 if epoch% self.conf['evaluation_epoch']  == 0:

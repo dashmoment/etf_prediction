@@ -64,6 +64,8 @@ class train_validation_generaotr:
         train_data = data[:pivot]
         valid_data = data[pivot:]
         
+        
+        
         train = []
         validataion = []
         
@@ -158,12 +160,8 @@ class train_validation_generaotr:
         
         process_data = self._load_data(filepath)
         stock_data = self._selectData2array(process_data, stock_IDs, time_period)
-
         #train, valid = self._split_train_val(stock_data, train_windows, predict_windows, train_val_ratio)
-        if len(stock_IDs) > 1:
-            train, valid = self._split_train_val_side_by_side(stock_data, train_windows, predict_windows, train_val_ratio)
-        else:
-            train, valid = self._split_train_val_side_by_side_random(stock_data, train_windows, predict_windows, train_val_ratio)
+        train, valid = self._split_train_val_side_by_side_random(stock_data, train_windows, predict_windows, train_val_ratio)
         return train, valid
     
     def get_test_data(self, train_windows, stocks):
@@ -185,10 +183,13 @@ class train_validation_generaotr:
             testSet[s] = d
             
         return self.get_test_data(train_windows, testSet)
+    
 
-
-    def generate_train_val_set_mStock(self, train_windows, predict_windows, train_val_ratio, stock_list,is_special_list = False, 
-                    filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'):
+#########Simple Demo#############
+        
+def read_special_data(train_windows, predict_windows, train_val_ratio, stock_list,is_special_list = False, 
+                    filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl',
+                    metafile = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl'):
 
 #    train_windows = 50
 #    predict_windows = 5
@@ -196,97 +197,86 @@ class train_validation_generaotr:
 #    filepath = './Data/all_feature_data_Nm[0]_59.pkl'
     
     
-        import pickle
-        f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
-        #f = open('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl', 'rb')
-        
-        _ = pickle.load(f)
-        _ = pickle.load(f)
-        _ = pickle.load(f)
-        index_dict = pickle.load(f)
-        
-        #stock_list =  ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204','006208']
-          
-        testSet = self._load_data(filepath)
-
-        clean_stock = {}
-        
-        missin_feature = []
-        if is_special_list:
-            
-            special_list = {
-                            '00690':"20170330", 
-                            '00692':"20170516", 
-                            '00701':"20170816", 
-                            '00713':"20170927"}
-            
-            for s in special_list:
-                
-                mask = (testSet.columns > special_list[s]) 
-                cut_testSet = testSet.iloc[:,mask]
-            
-                stock_s = cut_testSet.loc[s]
-               
-                clean_set = []
-                [clean_set.append(row) for row in stock_s]
-            
-                clean_set = np.vstack(clean_set)
-                
-                tmpDF = pd.DataFrame(clean_set, columns=index_dict)
-                missin_feature.append(tmpDF.columns[tmpDF.isnull().any()].tolist())
-                tmpDF = tmpDF.dropna(axis=[1]) 
-                clean_stock[s] = tmpDF
-        
-            all_stock_list = stock_list + ["00690", "00692", "00701", "00713"]
-        else:
-            all_stock_list = stock_list
-
-        for s in stock_list:
-            stock = testSet.loc[s]
-            clean_set = []
-            [clean_set.append(row) for row in stock]
-            clean_set = np.vstack(clean_set)
-            tmpDF = pd.DataFrame(clean_set, columns=index_dict)
-            if is_special_list: clean_stock[s] = tmpDF.drop(missin_feature[-1], axis=1)  
-            else: clean_stock[s] = tmpDF
-        
-        train = []
-        validation = []
-        train_raw = {}
-        validation_raw = {}
-        
-        for s in all_stock_list:
-            
-            tmp_train, tmp_validation = self._split_train_val(clean_stock[s], train_windows, predict_windows, train_val_ratio)
-            train.append(tmp_train)
-            validation.append(tmp_validation)
-            
-            train_raw[s] = tmp_train
-            validation_raw[s] = tmp_validation
-            
-        train = np.vstack(train)
-        validation = np.vstack(validation)
-
-        return train, validation, train_raw, validation_raw, missin_feature
+    import pickle
+    #f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_0_89.pkl', 'rb')
+    f = open(metafile, 'rb')
     
+    _ = pickle.load(f)
+    _ = pickle.load(f)
+    _ = pickle.load(f)
+    index_dict = pickle.load(f)
+    
+    #stock_list =  ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204','006208']
+      
+    tv_gen = train_validation_generaotr()
+    testSet = tv_gen._load_data(filepath)
 
-########Simple Demo#############
-#import math
-#
-#filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data.pkl'
-#tv_gen = train_validation_generaotr()
-#f = pd.read_pickle(filepath)
-#stocks = ['0050', '0051', '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208']
-#process_data = tv_gen._load_data(filepath)
-#stock_data = tv_gen._selectData2array(process_data, stocks, None)
-#train, valid = tv_gen._split_train_val_side_by_side(stock_data, 50, 5, 0.2)
-
-
-
+    clean_stock = {}
+    
+    missin_feature = []
+    if is_special_list:
         
+        special_list = {
+                        '00690':"20170330", 
+                        '00692':"20170516", 
+                        '00701':"20170816", 
+                        '00713':"20170927"}
+        
+        for s in special_list:
+            
+            mask = (testSet.columns > special_list[s]) 
+            cut_testSet = testSet.iloc[:,mask]
+        
+            stock_s = cut_testSet.loc[s]
+           
+            clean_set = []
+            [clean_set.append(row) for row in stock_s]
+        
+            clean_set = np.vstack(clean_set)
+            
+            tmpDF = pd.DataFrame(clean_set, columns=index_dict)
+            missin_feature.append(tmpDF.columns[tmpDF.isnull().any()].tolist())
+            tmpDF = tmpDF.dropna(axis=[1]) 
+            clean_stock[s] = tmpDF
+    
+        all_stock_list = stock_list + ["00690", "00692", "00701", "00713"]
+    else:
+        all_stock_list = stock_list
 
+    for s in stock_list:
+        stock = testSet.loc[s]
+        clean_set = []
+        [clean_set.append(row) for row in stock]
+        clean_set = np.vstack(clean_set)
+        tmpDF = pd.DataFrame(clean_set, columns=index_dict)
+        if is_special_list: clean_stock[s] = tmpDF.drop(missin_feature[-1], axis=1)  
+        else: clean_stock[s] = tmpDF
+    
+    train = []
+    validation = []
+    train_raw = {}
+    validation_raw = {}
+    
+    for s in all_stock_list:
+        
+        tmp_train, tmp_validation = tv_gen._split_train_val(clean_stock[s], train_windows, predict_windows, train_val_ratio)
+        train.append(tmp_train)
+        validation.append(tmp_validation)
+        
+        train_raw[s] = tmp_train
+        validation_raw[s] = tmp_validation
+        
+    train = np.vstack(train)
+    validation = np.vstack(validation)
 
+    return train, validation, train_raw, validation_raw, missin_feature
 
+###############################################################################
+    
+#train_data = []
+#for s in clean_stock:
+#    train_data.append(np.array(clean_stock[s]))    
+#train_data = np.vstack(train_data)
 
         
         

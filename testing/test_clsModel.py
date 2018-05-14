@@ -17,7 +17,7 @@ validation = []
 
 tf.reset_default_graph()  
 
-c = conf.config('test_onlyEnc_biderect_gru_allstock_cls').config['common']
+c = conf.config('test_clsModel').config['common']
 sample_step = c['input_step'] +  c['predict_step']
 rand = 0
 for i in range(0, 38500, 35):

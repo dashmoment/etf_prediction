@@ -64,6 +64,8 @@ class train_validation_generaotr:
         train_data = data[:pivot]
         valid_data = data[pivot:]
         
+        
+        
         train = []
         validataion = []
         
@@ -185,10 +187,18 @@ class train_validation_generaotr:
 
 #########Simple Demo#############
         
-def read_special_data():
-        
+def read_special_data(train_windows, predict_windows, train_val_ratio, filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'):
+
+#    train_windows = 50
+#    predict_windows = 5
+#    train_val_ratio = 0.2
+#    filepath = './Data/all_feature_data_Nm[0]_59.pkl'
+    
+    
     import pickle
-    f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
+    #f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
+    f = open('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl', 'rb')
+    
     _ = pickle.load(f)
     _ = pickle.load(f)
     _ = pickle.load(f)
@@ -201,7 +211,7 @@ def read_special_data():
                     '00701':"20170816", 
                     '00713':"20170927"}
     
-    filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'
+    
     tv_gen = train_validation_generaotr()
     testSet = tv_gen._load_data(filepath)
     
@@ -236,16 +246,22 @@ def read_special_data():
         
     train = []
     validation = []
+    train_raw = {}
+    validation_raw = {}
+    
     for s in all_stock_list:
         
-        tmp_train, tmp_validation = tv_gen._split_train_val(clean_stock[s], 50, 5, 0.2)
+        tmp_train, tmp_validation = tv_gen._split_train_val(clean_stock[s], train_windows, predict_windows, train_val_ratio)
         train.append(tmp_train)
         validation.append(tmp_validation)
         
+        train_raw[s] = tmp_train
+        validation_raw[s] = tmp_validation
+        
     train = np.vstack(train)
     validation = np.vstack(validation)
-    
-    return train, validation
+
+    return train, validation, train_raw, validation_raw, missin_feature
 
 ###############################################################################
     

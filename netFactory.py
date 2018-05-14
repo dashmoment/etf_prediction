@@ -356,7 +356,7 @@ def decoder_cls(batch, decoder_cell, project_fn, previous_y, state, predict_time
         #decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state)
         loop_init_train =   [	tf.constant(0, dtype=tf.int32), #time
     	                    		tf.reshape(previous_y[:,0], (-1, 3)), 
-    	                    		state,
+    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         
@@ -366,7 +366,7 @@ def decoder_cls(batch, decoder_cell, project_fn, previous_y, state, predict_time
   
         loop_init_inference = [	tf.constant(0, dtype=tf.int32), #time
     	                    		tf.nn.softmax(project_fn(previous_y)), 
-    	                    		state,
+    	                    		decoder_cell.zero_state(batch, tf.float32).clone(cell_state=state),
     	                   		tf.TensorArray(dtype=tf.float32, size=predict_time_step),
     	                    		tf.TensorArray(dtype=tf.float32, size=predict_time_step) ]
         _, _, _, targets_ta, outputs_ta = tf.while_loop(cond_fn, loop_fn_inference, loop_init_inference)

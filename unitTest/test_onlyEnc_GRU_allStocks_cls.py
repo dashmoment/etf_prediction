@@ -10,8 +10,9 @@ import numpy as np
 
 
 tf.reset_default_graph()  
-c = conf.config('test_onlyEnc_biderect_gru_allstock_cls').config['common']
-train, validation = dp.read_special_data()
+c = conf.config('test_onlyEnc_biderect_gru_nospecialstock_cls').config['common']
+train, validation , train_raw, validation_raw, _ = dp.read_special_data( c['input_step'], c['predict_step'], c['train_eval_ratio'], 
+                                                                        c['input_stocks'], filepath = c['src_file_path'])
 sample_window = c['input_step'] + c['predict_step']
 
 

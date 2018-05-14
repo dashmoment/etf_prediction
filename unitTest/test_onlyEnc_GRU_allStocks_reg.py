@@ -10,8 +10,8 @@ import numpy as np
 
 
 tf.reset_default_graph()  
-c = conf.config('test_onlyEnc_biderect_gru_allstock').config['common']
-train, validation = dp.read_special_data()
+c = conf.config('test_onlyEnc_biderect_gru_nospecialstock').config['common']
+train, validation , _ , _ , _ = dp.read_special_data( c['input_step'], c['predict_step'], c['train_eval_ratio'],  c['input_stocks'])
 sample_window = c['input_step'] + c['predict_step']
 
 
@@ -20,7 +20,7 @@ if c['feature_size'] == None: c['feature_size'] = train.shape[-1]
 x = tf.placeholder(tf.float32, [None, c['input_step'], c['feature_size']])
 y = tf.placeholder(tf.float32, [None, c['predict_step']]) 
 
-decoder_output = mz.model_zoo(c, x, y, dropout = 0.8, is_train = True).decoder_output
+decoder_output = mz.model_zoo(c, x, y, dropout = 0.6, is_train = True).decoder_output
 decoder_output_eval = mz.model_zoo(c, x, y, dropout = 1.0, is_train = False).decoder_output
 
 l2_reg_loss = 0
@@ -40,6 +40,7 @@ with tf.name_scope('train_summary'):
     merged_summary_train = tf.summary.merge_all('train')     
     
 with tf.name_scope('validatin_summary'):
+    
     tf.summary.scalar('l2loss', loss_eval, collections=['validatin'])
     merged_summary_val = tf.summary.merge_all('validatin') 
 

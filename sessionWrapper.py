@@ -199,7 +199,8 @@ class sessionWrapper:
 
                 epoch += 1
                 pbar.update(1)
-                if  'random' not in self.conf['sample_type'] and self.conf['input_stocks'] == 1 : 
+                if  'random' not in self.conf['sample_type']: 
+                    pbar.set_description('Shuffle Data')
                     np.random.shuffle(train_set)
                 #else: print('random')
                 

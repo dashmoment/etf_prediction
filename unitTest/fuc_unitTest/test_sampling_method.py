@@ -1,5 +1,4 @@
-import sys
-sys.path.append('../')
+import init
 import tensorflow as tf
 import hparam as conf
 import sessionWrapper as sesswrapper

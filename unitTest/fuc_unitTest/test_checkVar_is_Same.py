@@ -1,3 +1,4 @@
+import init
 import hparam as conf
 import tensorflow as tf
 import data_process as dp

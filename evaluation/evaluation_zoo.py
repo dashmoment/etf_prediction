@@ -115,7 +115,7 @@ class classification_score():
             loss_s, softmax_out_s, predict_s, gt = sess.run([logits, softmax_out,predict_cls, ground_truth], feed_dict={x:train, y:label_cls})
             result_cls, score, w_score, mean_score_cls = sess.run([plane_result, score_tf, weighted_result, mean_score], feed_dict={x:train, y:label_cls})
             
-        return mean_score_cls, predict_s, gt
+        return mean_score_cls, softmax_out_s, gt
 
 
 class regression2Cls_score():

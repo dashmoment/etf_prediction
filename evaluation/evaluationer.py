@@ -6,7 +6,7 @@ import hparam as conf
 import evaluation_zoo as evalf
 from utility import general_utility
 
-conf_reg = conf.config('test_onlyEnc_biderect_gru_nospecialstock').config['common']
+conf_reg = conf.config('test_onlyEnc_biderect_gru_nospecialstock_cls').config['common']
 close_price_mean_var, *_ = general_utility.read_metafile(conf_reg['meta_file_path'])
 
 mean = close_price_mean_var.mean_[0]

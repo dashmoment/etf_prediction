@@ -188,7 +188,7 @@ class train_validation_generaotr:
 #########Simple Demo#############
         
 def read_special_data(train_windows, predict_windows, train_val_ratio, stock_list,is_special_list = False, 
-                    filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl'):
+                    filepath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl'):
 
 #    train_windows = 50
 #    predict_windows = 5
@@ -197,7 +197,7 @@ def read_special_data(train_windows, predict_windows, train_val_ratio, stock_lis
     
     
     import pickle
-    f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_0_89.pkl', 'rb')
+    f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
     #f = open('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl', 'rb')
     
     _ = pickle.load(f)

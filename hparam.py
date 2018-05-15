@@ -310,8 +310,8 @@ class config:
         conf = self.config['common']   
         
         #Data Attributes
-        #conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'
-        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'
+        #conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl'
         conf['input_stocks'] = ['0050']
         
         #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204']

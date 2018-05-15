@@ -5,9 +5,20 @@ from tqdm import tqdm
 import random
 from utility import tf_utility as ut
 
+def gather_features(data, feature_mask):
+
+    mask = np.zeros(np.shape(data)[-1], dtype= bool)
+
+    for i in range(len(mask)):
+        if i in feature_mask:
+            mask[i] = True
+        else:
+            mask[i] = False
+
+    return data[:,:,mask]
 
 
-def get_batch(data_set, train_step,batch_size, cur_index, feature_size=None):
+def get_batch(data_set, train_step,batch_size, cur_index, feature_mask,feature_size=None):
     
     #data_set: [None, time_step, features ]
     #batch_idx: index of batch start point
@@ -15,8 +26,7 @@ def get_batch(data_set, train_step,batch_size, cur_index, feature_size=None):
     batch =  data_set[cur_index:cur_index + batch_size, :, :]
     train, label = np.split(batch, [train_step], axis=1)
     
-    if feature_size == None: feature_size = np.shape(train)[-1]
-    train = train[:,:,:feature_size]
+    train = gather_features(train, feature_mask)
     label = label[:,:,3]
 
     return train, label
@@ -73,7 +83,7 @@ def get_batch_random_cls(data_set, train_step,batch_size, cur_index, feature_siz
     return train, label
 
 
-def get_batch_cls(data_set, train_step, batch_size, cur_index, feature_size=None):
+def get_batch_cls(data_set, train_step, batch_size, cur_index, feature_mask, feature_size=None):
     
     #data_set: [None, time_step, features ]
     #batch_idx: index of batch start point
@@ -81,8 +91,7 @@ def get_batch_cls(data_set, train_step, batch_size, cur_index, feature_size=None
     batch =  data_set[cur_index:cur_index + batch_size, :, :]
     train, label = np.split(batch, [train_step], axis=1)
     
-    if feature_size == None: feature_size = np.shape(train)[-1]
-    train = train[:,:,:feature_size]
+    train = gather_features(train, feature_mask)
     label = label[:,:,-3:]
 
     return train, label
@@ -179,18 +188,18 @@ class sessionWrapper:
 
                 for i in range(Nbatch):
                     batch_index = i*batch_size
-                    train_data, train_label = get_batch(train_set, self.train_step, batch_size, batch_index,  self.conf['feature_size'])
+                    train_data, train_label = get_batch(train_set, self.train_step, batch_size, batch_index,  self.conf['feature_mask'], self.conf['feature_size'])
                     sess.run(self.optimizer, feed_dict={self.x:train_data, self.y:train_label})
 
                 if epoch% self.conf['save_ckpt_epoch'] == 0:
-                    train_data, train_label = get_batch(train_set, self.train_step, batch_size, random.randint(0,len(train_set)//batch_size), self.conf['feature_size'])
+                    train_data, train_label = get_batch(train_set, self.train_step, batch_size, random.randint(0,len(train_set)//batch_size), self.conf['feature_mask'],self.conf['feature_size'])
                     l2loss, train_sum =  sess.run([self.loss, self.train_summary], feed_dict={self.x:train_data, self.y:train_label})
                     self.summary_writer.add_summary(train_sum, epoch)
                     ut.save_ckpt(self.saver, sess, self.conf['checkpoint_dir'], self.conf['ckpt_name'], epoch)
                     pbar.set_description('train l2loss: {}'.format(l2loss))    
 				
                 if epoch% self.conf['evaluation_epoch']  == 0:
-                    val_data, val_label = get_batch(test_set, self.train_step, batch_size, random.randint(0,len(test_set)//batch_size),  self.conf['feature_size'])
+                    val_data, val_label = get_batch(test_set, self.train_step, batch_size, random.randint(0,len(test_set)//batch_size), self.conf['feature_mask'],self.conf['feature_size'])
                     l2loss, val_sum =  sess.run([self.loss_eval, self.test_summary], feed_dict={self.x: val_data, self.y: val_label})         
                     self.summary_writer.add_summary(val_sum, epoch)
                     eval_bar.update(self.conf['evaluation_epoch'])

@@ -325,10 +325,11 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
-        conf['feature_size'] = 1
+        conf['feature_mask'] =  list(range(5))
+        conf['feature_size'] = len(conf['feature_mask'])
         conf['sample_type'] = 'cls'
-        conf['model'] = 'baseline_LuongAtt_lstm_cls'
-        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_nospecialstock_cls_step50f64'
+        conf['model'] = 'baseline_encReg_biderect_gru_cls'
+        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_nospecialstock_cls_step50f16if5'
         #conf['checkpoint_dir'] = '/home/dashmoment/tfModel/test_onlyEnc_biderect_gru_nospecialstock_cls_step50f64_all'
         conf['ckpt_name'] = 'baseline_encReg_biderect_gru_cls.ckpt'
         conf['input_step'] = 50
@@ -342,7 +343,50 @@ class config:
         conf['save_ckpt_epoch'] = 100
         conf['evaluation_epoch'] = 100
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 5400
+        conf['current_epoch'] = 0
+
+
+    def test_onlyEnc_biderect_gru_nospecialstock_relu_cls(self):
+        
+        conf = self.config['common']   
+        
+        #Data Attributes
+
+        #conf['src_file_path'] =  '/home/dashmoment/workspace/etf_prediction/Data/all_feature_data_Nm[0]_59.pkl'
+        #conf['meta_file_path'] = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl'
+        
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl'
+        conf['meta_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_0_89.pkl'
+        conf['input_stocks'] = ['0050']
+        
+        #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204']
+        #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208','00690', '00692', '00701', '00713']
+        #conf['train_period'] =  ['20130102', '20180711']
+        conf['train_period'] =  None
+        conf['eval_period'] =  ['20170311', '20180402']
+
+        
+        #Model Attributes
+        
+        conf['feature_mask'] =  list(range(5))
+        conf['feature_size'] = len(conf['feature_mask'])
+        conf['sample_type'] = 'cls'
+        conf['model'] = 'baseline_encReg_biderect_gru_cls_gruRelu'
+        conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/baseline_encReg_biderect_gru_cls_gruRelu_0050_step50f16if5'
+        #conf['checkpoint_dir'] = '/home/dashmoment/tfModel/test_onlyEnc_biderect_gru_nospecialstock_cls_step50f64_all'
+        conf['ckpt_name'] = 'baseline_encReg_biderect_gru_cls.ckpt'
+        conf['input_step'] = 50
+        conf['predict_step'] = 5
+        conf['batch_size'] = 32
+        conf['train_eval_ratio'] = 0.2 
+        conf['n_linear_hidden_units'] = 64
+        conf['n_lstm_hidden_units'] = 16
+        
+        #Session Control
+        conf['save_ckpt_epoch'] = 100
+        conf['evaluation_epoch'] = 100
+        conf['total_epoch'] = 100000
+        conf['current_epoch'] = 0
 
     def test_onlyEnc_biderect_gru_nospecialstock(self):
         
@@ -362,7 +406,8 @@ class config:
         conf['eval_period'] =  ['20170311', '20180402']
         
         #Model Attributes
-        conf['feature_size'] = 89
+        conf['feature_mask'] =  list(range(89))
+        conf['feature_size'] = len(conf['feature_mask'])
         conf['sample_type'] = 'reg'
         conf['model'] = 'baseline_encReg_biderect_gru'
         conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/test_onlyEnc_biderect_gru_nospecialstock_step50f128'
@@ -380,7 +425,7 @@ class config:
         conf['save_ckpt_epoch'] = 100
         conf['evaluation_epoch'] = 100
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 0
+        conf['current_epoch'] = 7264
 
     def test_onlyEnc_biderect_gru_mstock_cls(self):
         

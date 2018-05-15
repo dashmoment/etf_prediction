@@ -1,12 +1,9 @@
 import numpy as np
 import pandas as pd
-import _pickle as pickle
 from tqdm import tqdm
-
-
+from utility import general_utility as ut
 
 verbose_state = True
-
 
 def print_c(print_content, verbose = verbose_state):
     
@@ -62,7 +59,7 @@ class train_validation_generaotr:
         total_len = len(data)
         pivot = int(total_len*(1-train_val_ratio))
         train_data = data[:pivot]
-        valid_data = data[pivot:]
+        valid_data = data[pivot - train_windows:]
         
         train = []
         validataion = []
@@ -81,7 +78,6 @@ class train_validation_generaotr:
     def _split_train_val_side_by_side_random(self, data, train_windows, predict_windows, train_val_ratio):
         
         print_c('Split train and validation data from {} data'.format(len(data)))   
-        sample_window =  train_windows + predict_windows 
         total_len = len(data)
         pivot = int(total_len*(1-train_val_ratio))
         train_data = data[:pivot]
@@ -187,31 +183,22 @@ class train_validation_generaotr:
         return self.get_test_data(train_windows, testSet)
 
 
-    def generate_train_val_set_mStock(self, train_windows, predict_windows, train_val_ratio, stock_list,is_special_list = False, 
-                    filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm[0]_59.pkl'):
+    def generate_train_val_set_mStock(self, filepath, stock_IDs, train_windows, predict_windows, train_val_ratio,
+                                      is_special_list = False,  
+                                      metafile = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl'):
 
 #    train_windows = 50
 #    predict_windows = 5
 #    train_val_ratio = 0.2
 #    filepath = './Data/all_feature_data_Nm[0]_59.pkl'
-    
-    
-        import pickle
-        f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
-        #f = open('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl', 'rb')
         
-        _ = pickle.load(f)
-        _ = pickle.load(f)
-        _ = pickle.load(f)
-        index_dict = pickle.load(f)
-        
-        #stock_list =  ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204','006208']
+        *_, feature_names = ut.read_metafile(metafile)
           
         testSet = self._load_data(filepath)
-
-        clean_stock = {}
         
+        clean_stock = {}
         missin_feature = []
+        
         if is_special_list:
             
             special_list = {
@@ -232,21 +219,21 @@ class train_validation_generaotr:
             
                 clean_set = np.vstack(clean_set)
                 
-                tmpDF = pd.DataFrame(clean_set, columns=index_dict)
+                tmpDF = pd.DataFrame(clean_set, columns=feature_names)
                 missin_feature.append(tmpDF.columns[tmpDF.isnull().any()].tolist())
                 tmpDF = tmpDF.dropna(axis=[1]) 
                 clean_stock[s] = tmpDF
         
-            all_stock_list = stock_list + ["00690", "00692", "00701", "00713"]
+            all_stock_list = stock_IDs + ["00690", "00692", "00701", "00713"]
         else:
-            all_stock_list = stock_list
+            all_stock_list = stock_IDs
 
-        for s in stock_list:
+        for s in stock_IDs:
             stock = testSet.loc[s]
             clean_set = []
             [clean_set.append(row) for row in stock]
             clean_set = np.vstack(clean_set)
-            tmpDF = pd.DataFrame(clean_set, columns=index_dict)
+            tmpDF = pd.DataFrame(clean_set, columns=feature_names)
             if is_special_list: clean_stock[s] = tmpDF.drop(missin_feature[-1], axis=1)  
             else: clean_stock[s] = tmpDF
         
@@ -257,7 +244,7 @@ class train_validation_generaotr:
         
         for s in all_stock_list:
             
-            tmp_train, tmp_validation = self._split_train_val(clean_stock[s], train_windows, predict_windows, train_val_ratio)
+            tmp_train, tmp_validation = self._split_train_val_side_by_side(clean_stock[s], train_windows, predict_windows, train_val_ratio)
             train.append(tmp_train)
             validation.append(tmp_validation)
             

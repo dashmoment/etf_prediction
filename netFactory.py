@@ -327,9 +327,8 @@ def decoder_cls(batch, decoder_cell, project_fn, previous_y, state, predict_time
 
     def loop_fn_train(time, prev_output, prev_state, array_targets: tf.TensorArray, array_outputs: tf.TensorArray):
 
-        #next_input = previous_y[:,time]
-        next_input = tf.reshape(previous_y[:,time], (-1, 1))
-        next_input = prev_output
+        
+        next_input = tf.reshape(previous_y[:,time], (-1, 3))
         output, state = decoder_cell(next_input, prev_state)
         projected_output = project_fn(output)
 

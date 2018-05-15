@@ -3,7 +3,7 @@ sys.path.append('../')
 import tensorflow as tf
 import hparam as conf
 import sessionWrapper as sesswrapper
-from utility import data_process as dp
+from utility import dataProcess as dp
 import model_zoo as mz
 import loss_func as l
 
@@ -35,7 +35,7 @@ for tf_var in tf.trainable_variables():
 loss = l.l1loss(decoder_output, y)
 loss_eval = l.l1loss(decoder_output_eval, y)
 #train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
+train_op = tf.train.RMSPropOptimizer(1e-2, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('l2loss', loss, collections=['train'])

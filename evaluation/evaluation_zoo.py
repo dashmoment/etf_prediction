@@ -2,8 +2,7 @@ import sys
 sys.path.append('../')
 import tensorflow as tf
 import numpy as np
-
-import data_process_list as dp
+from utility import dataProcess as dp
 import model_zoo as mz
 
 
@@ -33,6 +32,7 @@ class regression_score():
         c['batch_size'] = len(evalSet) 
         
         train, label = np.split(evalSet, [c['input_step']], axis=1)    
+        train = np.reshape(train[:,:,:c['feature_size']], (c['batch_size'], c['input_step'], -1))
         label_reg = label[:,:,3]
        
         tf.reset_default_graph()  
@@ -87,7 +87,7 @@ class classification_score():
         if c['feature_size'] == None: c['feature_size'] = evalSet.shape[-1]
         c['batch_size'] = len(evalSet) 
         train, label = np.split(evalSet, [c['input_step']], axis=1) 
-        #train = np.reshape(train[:,:,:c['feature_size']], (c['batch_size'], c['input_step'], -1))
+        train = np.reshape(train[:,:,:c['feature_size']], (c['batch_size'], c['input_step'], -1))
         label_cls = label[:,:,-3:]   
         
         x = tf.placeholder(tf.float32, [None, c['input_step'],c['feature_size']]) 
@@ -112,10 +112,10 @@ class classification_score():
             else:
                 print(" [!] Load failed...")
                 
-            loss_s, softmax_out_s, predict_s = sess.run([logits, softmax_out,predict_cls], feed_dict={x:train, y:label_cls})
+            loss_s, softmax_out_s, predict_s, gt = sess.run([logits, softmax_out,predict_cls, ground_truth], feed_dict={x:train, y:label_cls})
             result_cls, score, w_score, mean_score_cls = sess.run([plane_result, score_tf, weighted_result, mean_score], feed_dict={x:train, y:label_cls})
             
-        return mean_score_cls, predict_s
+        return mean_score_cls, predict_s, gt
 
 
 class regression2Cls_score():
@@ -162,6 +162,7 @@ class regression2Cls_score():
         if c['feature_size'] == None: c['feature_size'] = evalSet.shape[-1]
         c['batch_size'] = len(evalSet)
         train, label = np.split(evalSet, [c['input_step']], axis=1) 
+        train = np.reshape(train[:,:,:c['feature_size']], (c['batch_size'], c['input_step'], -1))
         label_reg = label[:,:,3]
        
         tf.reset_default_graph()  
@@ -197,6 +198,6 @@ class regression2Cls_score():
         match_matrix = match_matrix*0.5*self.weighted_array
         score = np.mean(np.sum(match_matrix, axis=1))
             
-        return score, match_matrix, cls_res, label_cls, label_reg,  
+        return score, match_matrix, cls_res, label_cls, label_reg
 
 

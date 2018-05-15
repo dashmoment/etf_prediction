@@ -43,7 +43,7 @@ for tf_var in tf.trainable_variables():
 loss = l.cross_entropy_loss(decoder_output, y) + l2_reg_loss 
 loss_eval = l.cross_entropy_loss(decoder_output_eval, y) + l2_reg_loss 
 #train_op = tf.train.AdamOptimizer(learning_rate=1e-4).minimize(loss)
-train_op = tf.train.RMSPropOptimizer(1e-2, 0.9).minimize(loss)
+train_op = tf.train.RMSPropOptimizer(1e-4, 0.9).minimize(loss)
 
 with tf.name_scope('train_summary'):
     tf.summary.scalar('cross_entropy_loss', loss, collections=['train'])

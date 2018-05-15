@@ -705,9 +705,9 @@ class config:
         #conf['src_file_path'] =  '/home/dashmoment/workspace/etf_prediction/Data/all_feature_data_Nm[0]_59.pkl'
         #conf['meta_file_path'] = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl'
         
-        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl'
-        conf['meta_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_0_89.pkl'
-        conf['input_stocks'] = ['0050']
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_99.pkl'
+        conf['meta_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_meta_data_99.pkl'
+        conf['input_stocks'] = ['2330']
         
         #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204']
         #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208','00690', '00692', '00701', '00713']
@@ -725,7 +725,7 @@ class config:
         conf['checkpoint_dir'] = '/home/ubuntu/model/etf_prediction/baseline_encReg_biderect_gru_cls_gruDenseRelu_0050_step50f16if5'
         #conf['checkpoint_dir'] = '/home/dashmoment/tfModel/test_onlyEnc_biderect_gru_nospecialstock_cls_step50f64_all'
         conf['ckpt_name'] = 'baseline_encReg_biderect_gru_cls.ckpt'
-        conf['input_step'] = 50
+        conf['input_step'] = 30
         conf['predict_step'] = 5
         conf['batch_size'] = 32
         conf['train_eval_ratio'] = 0.2 

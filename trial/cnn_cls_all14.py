@@ -9,91 +9,57 @@ from utility import dataProcess as dp
 from utility import general_utility as gu
 import model_zoo as mz
 import loss_func as l
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn import preprocessing
 
-import sklearn.preprocessing as p
+from utility_trial import *
 
-tf.reset_default_graph()  
+
 c = conf.config('trial_cnn_cls').config['common']
 sample_window = c['input_step'] + c['predict_step']
 
 tv_gen = dp.train_validation_generaotr()
+meta = gu.read_metafile(c['meta_file_path'])
 f = tv_gen._load_data(c['src_file_path'])
-data = tv_gen._selectData2array(f, ['0050'], None)
 
-train = data[:,:-3]
-label = data[:,-3:]
+data_raw = tv_gen._selectData2array(f, f.index, None)
 
-#Only Up and down Features
+data_raw = np.transpose(data_raw, (0,2,1))
+data_raw = np.reshape(data_raw, (-1,99))
 
-train_ud = label
-ud_feature = train_ud[1:] - train_ud[:-1]
-serial_feature = [] 
-#[1,0,0]: two day down 
-#[0,1,0]: two day fair
-#[0,0,1]: two day up
-
-for i in range(1, len(train_ud)):
-    
-    if train_ud[i][0] == 1 and train_ud[i-1][0] == 1:
-        serial_feature.append([1,0,0])
-    
-    elif train_ud[i][1] == 1 and train_ud[i-1][1] == 1:
-        serial_feature.append([0,1,0])
-        
-    elif train_ud[i][2] == 1 and train_ud[i-1][2] == 1:
-        serial_feature.append([0,0,1])
-    else:
-        serial_feature.append([0,0,0])
-        
-        
-serial_feature_2 = [] 
-#[1,0,0]: three day down 
-#[0,1,0]: three day fair
-#[0,0,1]: three day up
-
-for i in range(2, len(train_ud)):
-    
-    if train_ud[i][0] == 1 and train_ud[i-1][0] == 1 and train_ud[i-2][0] == 1:
-        serial_feature_2.append([1,0,0])
-    
-    elif train_ud[i][1] == 1 and train_ud[i-1][1] == 1 and train_ud[i-2][1] == 1:
-        serial_feature_2.append([0,1,0])
-        
-    elif train_ud[i][2] == 1 and train_ud[i-1][2] == 1 and train_ud[i-2][2] == 1:
-        serial_feature_2.append([0,0,1])
-    else:
-        serial_feature_2.append([0,0,0])
-        
-    
-
-serial_feature = np.vstack(serial_feature).astype(np.float64)
-serial_feature_2 = np.vstack(serial_feature_2).astype(np.float64)
-
-train_ud = np.hstack([train_ud[2:], ud_feature[1:],serial_feature[1:], serial_feature_2])
-label_ud = label[2:]
-
-#train_ud, label_ud = data_label_shift(train_ud, label_ud, lag_day=1)
-
-input_step = 15
+input_step = 20
 predict_step = 5
 sample_step = input_step + predict_step
 
 data = []
+for i in range(sample_step, len(data_raw)):
+    data.append(data_raw[i-sample_step:i])
 
+mask = np.zeros((len(data)), bool)
+import random
 
-for i in range(sample_step, len(train_ud)):
-    data.append(train_ud[i-sample_step:i])
-    
+idx = 0
+while idx < 2000:
+    rnd = random.randint(0,len(mask))
+    if not mask[rnd]:
+        mask[rnd] = True
+        idx += 1
+    else: idx = idx
+
+n_mask = np.invert(mask)
+
 data = np.stack(data, axis=0)
-
-train_data = data[:700]
-validation_data = data[750:]
-
+train_data = data[1200:]
+validation_data = data[:1000]
 tdata, tlabel = np.split(train_data, [input_step], axis=1)
-tlabel = tlabel[:,:,:3]
-
+tdata = tdata[:,:,50:]
+tlabel = tlabel[:,:,-3:]
 vdata, vlabel = np.split(validation_data, [input_step], axis=1)
-vlabel = vlabel[:,:,:3]
+vdata = vdata[:,:,50:]
+vlabel = vlabel[:,:,-3:]
+
 
 
 #============Build CNN model===============
@@ -157,10 +123,5 @@ test_accuracy = np.mean(np.equal(final_prediction_cls, v_label_cls))
 weighted_array = [0.1,0.15,0.2,0.25,0.3]
 test_score = np.mean(np.sum(np.equal(final_prediction_cls, v_label_cls).astype(np.float32)*weighted_array*0.5, axis=1))
 
-import matplotlib.pyplot as plt
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
-
-
-
-

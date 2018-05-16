@@ -6,6 +6,7 @@ import tensorflow as tf
 import hparam as conf
 import sessionWrapper as sesswrapper
 from utility import dataProcess as dp
+from utility import general_utility as gu
 import model_zoo as mz
 import loss_func as l
 import pandas as pd

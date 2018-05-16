@@ -8,52 +8,58 @@ import sessionWrapper as sesswrapper
 from utility import dataProcess as dp
 import model_zoo as mz
 import loss_func as l
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn import preprocessing
 
-tf.reset_default_graph()  
+from utility_trial import *
+
+
 c = conf.config('trial_cnn_cls').config['common']
 sample_window = c['input_step'] + c['predict_step']
 
 tv_gen = dp.train_validation_generaotr()
 
 f = tv_gen._load_data(c['src_file_path'])
-stock = tv_gen._selectData2array(f, ['2330'], None)
+data = tv_gen._selectData2array(f, ['0050'], None)
 
-train = stock[:769]
-validation = stock[769:]
+train = data[:,:-3]
+label = data[:,-3:]
 
-train_data = np.reshape(train[:,:96], (-1,96,1))
-train_label = train[:,96:]
-validation_data = np.reshape(validation[:,:96], (-1,96,1))
-validation_label = validation[:,96:]
+#Train ratio
+train_ratio = train[1:]/train[:-1]
+label_ratio = label[1:]
+train_ratio, label_ratio = data_label_shift(train_ratio, label_ratio, lag_day=1)
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn import preprocessing
 
-mask = np.zeros((99), dtype=bool)
-mask[:96] = True
-mask[96:] = True
-price = train[:, mask]
-price_df = pd.DataFrame(price)
+all_ratio = np.hstack((train_ratio, label_ratio))
+corr_ratio = get_corr_up_and_down(pd.DataFrame(all_ratio), [86, 88], [86,87,88])
+p =example_xgb(train_ratio, label_ratio, [84,82,69])
 
-corr = price_df.corr()
-sns.heatmap(corr)
+#Auto correlation
+lag = 30
+s1 = data[lag:]
+s2 = data[:-lag]
 
-plt.plot(preprocessing.scale(price[:,3]))
-plt.scatter(list(range(len(price))),np.argmax(price[:,-3:], axis=-1))
+ms1 = np.mean(s1)
+ms2 = np.mean(s2)
+ds1 = s1 - ms1
+ds2 = s2 - ms2
+divider = np.sqrt(np.sum(ds1 * ds1)) * np.sqrt(np.sum(ds2 * ds2))
+auto_corr = np.sum(ds1 * ds2) / divider
 
-label = train[:,-3:]
-train_ = np.zeros(np.shape(train))
 
-for i in range(1, len(train)):
-    train_[i] = train[i] - train[i-1]
 
-train_ = train_[1:len(train)-1, mask]
-label_ = label[2:]
-price_df_ = pd.DataFrame(train_)
-corr = price_df_.corr()
-sns.heatmap(corr)
 
-plt.plot(preprocessing.scale(train_[0:10,3]))
-plt.scatter(list(range(10)),np.argmax(label_[0:10,-3:], axis=-1))
+
+
+
+
+
+
+
+
+
+
+

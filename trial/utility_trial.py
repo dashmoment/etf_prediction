@@ -35,7 +35,7 @@ def get_corr_up_and_down(df, corr_label, mask_index):
 def example_xgb(train, label, mask_features):
     import xgboost as xgb
     from sklearn.metrics import accuracy_score
-    model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=100, silent=True)
+    model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=True)
     
     train = gather_features(train, mask_features)
     

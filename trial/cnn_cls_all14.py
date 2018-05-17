@@ -9,66 +9,68 @@ from utility import dataProcess as dp
 from utility import general_utility as gu
 import model_zoo as mz
 import loss_func as l
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn import preprocessing
 
-from utility_trial import *
+import sklearn.preprocessing as p
 
-
+tf.reset_default_graph()  
 c = conf.config('trial_cnn_cls').config['common']
 sample_window = c['input_step'] + c['predict_step']
 
 tv_gen = dp.train_validation_generaotr()
 meta = gu.read_metafile(c['meta_file_path'])
 f = tv_gen._load_data(c['src_file_path'])
+stock = tv_gen._selectData2array(f, f.index, None)
 
-data_raw = tv_gen._selectData2array(f, f.index, None)
-
-data_raw = np.transpose(data_raw, (0,2,1))
-data_raw = np.reshape(data_raw, (-1,99))
-
-input_step = 20
-predict_step = 5
-sample_step = input_step + predict_step
-
-data = []
-for i in range(sample_step, len(data_raw)):
-    data.append(data_raw[i-sample_step:i])
-
-mask = np.zeros((len(data)), bool)
-import random
-
-idx = 0
-while idx < 2000:
-    rnd = random.randint(0,len(mask))
-    if not mask[rnd]:
-        mask[rnd] = True
-        idx += 1
-    else: idx = idx
-
-n_mask = np.invert(mask)
-
-data = np.stack(data, axis=0)
-train_data = data[1200:]
-validation_data = data[:1000]
-tdata, tlabel = np.split(train_data, [input_step], axis=1)
-tdata = tdata[:,:,50:]
-tlabel = tlabel[:,:,-3:]
-vdata, vlabel = np.split(validation_data, [input_step], axis=1)
-vdata = vdata[:,:,50:]
-vlabel = vlabel[:,:,-3:]
+#******Add Extra Feature*******
+stock = add_DOW(stock)
 
 
+#******************************
 
-#============Build CNN model===============
+stock_diff = stock[1:,:-3] - stock[:-1,:-3]
+stock_diff = np.concatenate((stock_diff, stock[1:,-3:]), axis=1)
+
+clean_stock = {}
+missin_feature = []
+stock_IDs = f.index
+feature_names = meta[-1]
+for s in range(len(stock_IDs)):
+    tmp_stock = stock_diff[:,:,s]
+    clean_stock[stock_IDs[s]] = tmp_stock
+            
+train = []
+validation = []
+train_raw = {}
+validation_raw = {}
+
+for s in stock_IDs:
+    
+    tmp_train, tmp_validation = tv_gen._split_train_val_side_by_side(clean_stock[s], 20, c['predict_step'], 0.2)
+    train.append(tmp_train)
+    validation.append(tmp_validation)
+    
+    train_raw[s] = tmp_train
+    validation_raw[s] = tmp_validation
+    
+train = np.vstack(train)
+validation = np.vstack(validation)
+
+
+train, label_raw = np.split(train, [20], axis=1)
+validation, v_label_raw = np.split(validation, [20], axis=1)
+feature_mask = list(range(50,80))
+tdata =  sesswrapper.gather_features(train, feature_mask)
+vdata = sesswrapper.gather_features(validation, feature_mask)
+tlabel = label_raw[:,:,-3:]
+vlabel = v_label_raw[:,:,-3:]
+
 
 import keras as k
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Convolution1D, MaxPooling1D, Flatten, Dropout,Reshape
 from keras.optimizers import Adam
 from keras.models import Model
+import matplotlib.pyplot as plt
 
 model = Sequential()
 model.add(Convolution1D(
@@ -125,3 +127,9 @@ test_score = np.mean(np.sum(np.equal(final_prediction_cls, v_label_cls).astype(n
 
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
+
+
+
+
+
+

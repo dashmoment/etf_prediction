@@ -16,8 +16,9 @@ c = conf.config('trial_cnn_cls').config['common']
 sample_window = c['input_step'] + c['predict_step']
 
 tv_gen = dp.train_validation_generaotr()
+f = tv_gen._load_data(c['src_file_path'])
 train, validation , train_raw, validation_raw, _ = tv_gen.generate_train_val_set_mStock(
-                                                        c['src_file_path'],c['input_stocks'], 
+                                                        c['src_file_path'],f.index, 
                                                         c['input_step'], c['predict_step'], c['train_eval_ratio'], 
                                                         metafile = c['meta_file_path'])
 
@@ -25,7 +26,7 @@ train, validation , train_raw, validation_raw, _ = tv_gen.generate_train_val_set
 train, label_raw = np.split(train, [c['input_step']], axis=1)
 validation, v_label_raw = np.split(validation, [c['input_step']], axis=1)
 
-feature_mask = [88,91,71,73,4]#list(range(50, 89))
+feature_mask = list(range(91,96)) #[88,91,71,73,4]#
 train = sesswrapper.gather_features(train, feature_mask)
 validation = sesswrapper.gather_features(validation, feature_mask)
 
@@ -76,7 +77,7 @@ metrics=['accuracy'])
 
 print('Training ------------')
 # Another way to train the model
-history = model.fit(train, label, epochs=500, batch_size=64,validation_data=(validation, v_label))
+history = model.fit(train, label, epochs=2000, batch_size=64,validation_data=(validation, v_label))
 
 print('\nTesting ------------')
 # Evaluate the model with the metrics we defined earlier

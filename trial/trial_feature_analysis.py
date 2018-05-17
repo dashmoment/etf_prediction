@@ -184,7 +184,7 @@ p_kdj_dow = example_xgb(kdj_dow, label_kdj_dow, list(range(9)))
 
 
 #RSI + DOW - Validation Accuracy: 0.51625
-rsi = np.hstack((flat_data_dow[:, :5], flat_data[:,63:65]))  
+rsi = np.hstack((flat_data_dow[:, :5], flat_data[:,63:66]))  
 rsi = prepro.normalize(rsi, axis = 0)
 rsi_label = flat_data[:, -3:]
 rsi, rsi_label = data_label_shift(rsi, rsi_label, lag_day=1)
@@ -237,7 +237,7 @@ kgj_ratio_mask =  list(range(66, 70)) + list(range(91,96))
 p_kdj_ratio = feature_expert_trail(flat_data, kgj_ratio_mask,lagday = 1)
 
 #rsi + ratio validation Accuracy:  0.62375
-rsi_ratio_mask = list(range(63,65)) + list(range(91,96)) 
+rsi_ratio_mask = list(range(63,66)) + list(range(91,96)) 
 p_rsi_ratio = feature_expert_trail(flat_data, rsi_ratio_mask)
 
 #data_velocity Validation Accuracy:  0.6525
@@ -248,7 +248,7 @@ velocity_label = np.reshape(np.transpose(velocity_label, (0,2,1)), (-1,3))
 p_velocity = feature_expert_trail(flat_data_v, list(range(5)), velocity_label, lagday=1)
 
 
-#data_accerlation Validation Accuracy:  0.6525
+#data_accerlation Validation Accuracy:  0.56375
 data_velocity= (data[1:,0:4] - data[:-1,0:4])/(data[:-1,0:4] + 0.1)
 data_acc = (data_velocity[1:,0:4] - data_velocity[:-1,0:4])/(data_velocity[:-1,0:4] + 0.1)
 acc_label = data[2:,-3:]
@@ -259,11 +259,47 @@ p_acc = feature_expert_trail(flat_data_acc, list(range(5)), label_acc, lagday=1)
 #data_velocity + data_accerlation Validation Accuracy:  0.6525
 data_velocity= (data[1:,0:4] - data[:-1,0:4])/(data[:-1,0:4] + 0.1)
 data_acc = (data_velocity[1:,0:4] - data_velocity[:-1,0:4])/(data_velocity[:-1,0:4] + 0.1)
-
 data_velocity = data_velocity[1:]
 data_av = np.concatenate([data_acc, data_velocity], axis=1)
 label_av = data[2:,-3:]
-
 flat_data_av = np.reshape(np.transpose(data_av, (0,2,1)), (-1,8))
 label_av = np.reshape(np.transpose(label_av, (0,2,1)), (-1,3))
 p_av = feature_expert_trail(flat_data_av, list(range(8)), label_av, lagday=1, axis=0)
+
+
+#ratio + velocity Validation Accuracy:  0.64625
+data_velocity= (data[1:,0:4] - data[:-1,0:4])/(data[:-1,0:4] + 0.1)
+data_ratio = data[1:,91:96] 
+data_vr = np.concatenate([data_velocity, data_ratio], axis=1)
+label_vr = data[1:,-3:]
+flat_data_vr = np.reshape(np.transpose(data_vr, (0,2,1)), (-1,9))
+label_vr = np.reshape(np.transpose(label_vr, (0,2,1)), (-1,3))
+p_vr = feature_expert_trail(flat_data_vr, list(range(9)), label_vr, lagday=1, axis=0)
+
+
+#kdj + velocity Validation Accuracy:  0.65625
+data_velocity= (data[1:,0:4] - data[:-1,0:4])/(data[:-1,0:4] + 0.1)
+data_kdj = data[1:,66:70] 
+data_vkdj = np.concatenate([data_velocity, data_kdj], axis=1)
+label_vkdj = data[1:,-3:]
+flat_data_vkdj = np.reshape(np.transpose(data_vkdj, (0,2,1)), (-1,8))
+label_vkdj = np.reshape(np.transpose(label_vkdj, (0,2,1)), (-1,3))
+p_vkdj = feature_expert_trail(flat_data_vkdj, list(range(9)), label_vkdj, lagday=1, axis=0)
+
+
+#ratio_velocity Validation Accuracy:  0.5775
+data_r_velocity= (data[1:,91:96] - data[:-1,91:96])/(data[:-1,91:96] + 0.1)
+rvelocity_label = data[1:,-3:]
+flat_data_rv = np.reshape(np.transpose(data_r_velocity, (0,2,1)), (-1,5))
+rvelocity_label = np.reshape(np.transpose(rvelocity_label, (0,2,1)), (-1,3))
+p_r_velocity = feature_expert_trail(flat_data_rv, list(range(5)), rvelocity_label, lagday=1)
+
+#kdj + MACD + rssi + ratio Validation Accuracy:  0.64125s
+kmrr_mask =  list(range(66, 70)) + list(range(63,66)) + list(range(91,96)) +  list(range(54,62))
+p_rkmrr = feature_expert_trail(flat_data, kmrr_mask, lagday=1)
+
+#ud Validation Accuracy:   0.6425s
+ud_mask =  list(range(101, 104))
+p_ud = feature_expert_trail(flat_data, ud_mask, lagday=1)
+
+

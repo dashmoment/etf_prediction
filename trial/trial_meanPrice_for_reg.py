@@ -100,7 +100,11 @@ for i in range(len(tasharep_ID)):
     score_ref = ((test -abs_loss)/test)*0.5
     scroe_list[tasharep_ID[i]] = (np.sum(score_ref*weighted_array))
 
-
+avg_score = []
+for k in scroe_list:
+    avg_score.append(scroe_list[k])
+    
+avg_score = np.mean(avg_score)
 
 
 

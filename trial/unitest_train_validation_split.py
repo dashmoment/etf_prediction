@@ -41,7 +41,7 @@ train, train_label = data_label_shift(train, train_label, lag_day=1)
 
 import xgboost as xgb
 from sklearn.metrics import accuracy_score
-model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=True)
+model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=100, silent=True)
 train_xgb = train[:-800]
 label_xgb = np.argmax(train_label[:-800], -1)
 validation_xgb = train[-800:]

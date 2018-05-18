@@ -46,7 +46,6 @@ class train_validation_generaotr:
         stock = np.vstack(stock)
 
         if len(stock_IDs) > 1:
-            print(np.shape(stock))
             stock = np.split(stock, len(stock_IDs))
             stock =np.dstack(stock)
         

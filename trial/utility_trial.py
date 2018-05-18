@@ -9,6 +9,8 @@ from utility import dataProcess as dp
 import model_zoo as mz
 import loss_func as l
 import sklearn.preprocessing as prepro
+import xgboost as xgb
+from sklearn.metrics import accuracy_score
 
 def gather_features(data, feature_mask):
 
@@ -34,8 +36,7 @@ def get_corr_up_and_down(df, corr_label, mask_index):
 
 
 def example_xgb(train, label, mask_features):
-    import xgboost as xgb
-    from sklearn.metrics import accuracy_score
+    
     model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=True)
     
     train = gather_features(train, mask_features)
@@ -44,6 +45,25 @@ def example_xgb(train, label, mask_features):
     label_xgb = np.argmax(label[:-800], -1)
     validation_xgb = train[-800:]
     v_label_xgb = np.argmax(label[-800:], -1) 
+    
+    model.fit(train_xgb, label_xgb)
+    y_xgb_train = model.predict(train_xgb)
+    y_xgb_v = model.predict(validation_xgb)
+    
+    print("Train Accuracy: ", accuracy_score(label_xgb, y_xgb_train))
+    print("Validation Accuracy: ",accuracy_score(v_label_xgb, y_xgb_v))
+    
+    return y_xgb_train, y_xgb_v
+
+
+def example_xgb_v2(train, label, vtrain, vlabel, mask_features):
+    
+    model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=True)
+    
+    train_xgb = gather_features(train, mask_features)
+    validation_xgb = gather_features(vtrain, mask_features)     
+    label_xgb = np.argmax(label, -1)
+    v_label_xgb = np.argmax(vlabel, -1) 
     
     model.fit(train_xgb, label_xgb)
     y_xgb_train = model.predict(train_xgb)

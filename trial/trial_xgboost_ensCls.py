@@ -26,13 +26,13 @@ class feature_extractor:
         self.velocity = velocity
         
     def ratio(self):        
-        feature_mask = list(range(91,96)) 
+        feature_mask = list(range(81,86)) 
         sample =  gather_features(self.flatData, feature_mask)
         
         return sample
     
     def kdj_ratio(self):      
-        kgj_ratio_mask =  list(range(66, 70)) + list(range(91,96))
+        kgj_ratio_mask =  list(range(66, 70)) + list(range(81,86))
         sample =  gather_features(self.flatData, kgj_ratio_mask)
         return sample
     
@@ -42,12 +42,12 @@ class feature_extractor:
         return sample_r_v
     
     def ud(self):
-        ud_mask =  list(range(101, 104))
+        ud_mask =  list(range(91, 94))
         sample =  gather_features(self.flatData, ud_mask)
         return sample
         
     def kdj_macd_rssi_ratio(self):
-        kmrr_mask =  list(range(66, 70)) + list(range(63,66)) + list(range(91,96)) +  list(range(54,62))
+        kmrr_mask =  list(range(66, 70)) + list(range(63,66)) + list(range(81,86)) +  list(range(54,62))
         sample =  gather_features(self.flatData, kmrr_mask)
         return sample
 
@@ -60,20 +60,27 @@ def get_ens_model(lagday = 5, model_temp = xgb.XGBClassifier(max_depth=3, learni
     *_,meta = gu.read_metafile(c['meta_file_path'])
     tv_gen = dp.train_validation_generaotr()  
     f = tv_gen._load_data(c['src_file_path'])
-    data = tv_gen._selectData2array(f, f.index, None)
+    data = tv_gen._selectData2array(f, f.index[:-4], None)
     
     data_velocity= (data[1:,0:4] - data[:-1,0:4])/(data[:-1,0:4] + 0.1)
     data = data[1:]
     
     train_sample = data[:-30]
     train_sample_v = data_velocity[:-30]
-    flat_train_sample = np.reshape(np.transpose(train_sample, (0,2,1)), (-1,104))
+    flat_train_sample = np.reshape(np.transpose(train_sample, (0,2,1)), (-1,94))
     flat_train_sample_velocity = np.reshape(np.transpose(train_sample_v, (0,2,1)), (-1,4))
     
     test_sample = data[-30:]
     test_sample_v = data_velocity[-30:]
-    flat_test_sample = np.reshape(np.transpose(test_sample, (0,2,1)), (-1,104))
+    flat_test_sample = np.reshape(np.transpose(test_sample, (0,2,1)), (-1,94))
     flat_test_sample_velocity = np.reshape(np.transpose(test_sample_v, (0,2,1)), (-1,4))
+    
+#    
+#    flat_train_sample = train_data['train']
+#    flat_train_sample_velocity = train_data['train_velocity']
+#    
+#    flat_test_sample = test_data['test']
+#    flat_test_sample_velocity = test_data['test_velocity']
     
     
     fe_train = feature_extractor(flat_train_sample, flat_train_sample_velocity)

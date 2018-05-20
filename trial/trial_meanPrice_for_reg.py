@@ -20,7 +20,8 @@ import pandas as pd
 def change_raw_columns_name(inputfile:pd.DataFrame):
     inputfile.columns = ["ID", "Date", "name", "open_price", "max", "min", "close_price", "trade"]
     
-data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
+#data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
+data_path = '/home/dashmoment/workspace/etf_prediction/Data/raw_data/20180518/tetfp.csv'
 tasharep = pd.read_csv(data_path, encoding = "big5-hkscs", dtype=str).dropna(axis = 1) # training data
 change_raw_columns_name(tasharep)
 

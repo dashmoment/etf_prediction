@@ -20,13 +20,18 @@ from sklearn.metrics import accuracy_score
 from utility_trial import *
 
 tv_gen = dp.train_validation_generaotr()
-*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_104s.pkl')
-f = tv_gen._load_data('/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_104s.pkl')
+#*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_104s.pkl')
+#f = tv_gen._load_data('/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_104s.pkl')
+#data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
+
+*_,meta = gu.read_metafile('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm_1_MinMax_94.pkl')
+f = tv_gen._load_data('/home/dashmoment/workspace/etf_prediction/Data/all_feature_data_Nm_1_MinMax_94.pkl')
+data_path = '/home/dashmoment/workspace/etf_prediction/Data/raw_data/20180518/tetfp.csv'
 
 def change_raw_columns_name(inputfile:pd.DataFrame):
     inputfile.columns = ["ID", "Date", "name", "open_price", "max", "min", "close_price", "trade"]
     
-data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
+
 tasharep = pd.read_csv(data_path, encoding = "big5-hkscs", dtype=str).dropna(axis = 1) # training data
 change_raw_columns_name(tasharep)
 
@@ -84,28 +89,248 @@ for i in range(len(tasharep_ID)):
 
 
 #****************Get ud*****************
+    
+def classification_train():
+    import trial_xgboost_ensCls as ens
+    
+    
+    clean_stocks = {}
+    MtestSamples = 30
+    lag_day = 1
+    
+    
+    #kgj + ratio + ud 
+    mask_list = list(range(66, 70)) + list(range(81,86))  + list(range(91, 94))
+    mask = []
+    for i in range(94):
+        if i in mask_list: mask.append(True)
+        else: mask.append(False)
+    
+    for s in f.index:
+    
+        single_stock = tv_gen._selectData2array(f, [s], None)
+        
+        tmpStock = []
+        for i in range(len(single_stock)):
+            if not np.isnan(single_stock[i,0:5]).all():
+                tmpStock.append(single_stock[i])
+        single_stock = np.array(tmpStock)
+        data_velocity= (single_stock[1:,0:4] - single_stock[:-1,0:4])/(single_stock[:-1,0:4] + 0.1)
+        data = single_stock[1:]
+        
+        delay_data = data[:-lag_day]
+        delay_data_velocity = data_velocity[:-lag_day]
+        label = data[lag_day:, -3:]
+        
+        clean_stocks[s] = { 'train': delay_data[:-MtestSamples],
+                            'train_velocity': delay_data_velocity[:-MtestSamples],
+                            'train_label': label[:-MtestSamples],
+                            'test':delay_data[-MtestSamples:],
+                            'test_velocity': delay_data_velocity[-MtestSamples:],
+                            'test_label': label[-MtestSamples:]}
+    
+    train = {}
+    test = {}
+    train['train'] = np.concatenate([clean_stocks[s]['train'] for s in  clean_stocks], axis=0)
+    train['train_velocity'] = np.concatenate([clean_stocks[s]['train_velocity'] for s in  clean_stocks], axis=0)
+    train['train_label'] = np.concatenate([clean_stocks[s]['train_label'] for s in  clean_stocks], axis=0)
+    test['test'] = np.concatenate([clean_stocks[s]['test'] for s in  clean_stocks], axis=0)
+    test['test_velocity'] = np.concatenate([clean_stocks[s]['test_velocity'] for s in  clean_stocks], axis=0)
+    test['test_label'] = np.concatenate([clean_stocks[s]['test_label'] for s in  clean_stocks], axis=0)
+    
+    
+    train_fe = ens.feature_extractor(train['train'], train['train_velocity'] )
+    test_fe = ens.feature_extractor(test['test'], test['test_velocity'] )
+    
+    train_label_raw = np.stack((train['train_label'][:, -3] + train['train_label'][:, -2] , train['train_label'][:, -1]), axis=1)
+    test_label_raw =  np.stack((test['test_label'][:, -3] + test['test_label'][:, -2], test['test_label'][:, -1]) , axis=1)
+    
+    #train_label_raw = train['train_label']
+    #test_label_raw = test['test_label']
+    
+    train_data = train_fe.ratio_velocity()
+    train_label = np.argmax(train_label_raw, axis=-1)
+    test_data = test_fe.ratio_velocity()
+    test_label = np.argmax(test_label_raw, axis=-1)
+    
+    
+    model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=False)
+    model.fit(train_data, train_label)
+    y_xgb_train = model.predict(train_data)
+    y_xgb_valid = model.predict(test_data)
+            
+    print("Train Accuracy [ratio]: ", accuracy_score(y_xgb_train, train_label))
+    print("Validation Accuracy [ratio]: ",accuracy_score(y_xgb_valid, test_label))
+        
+    
+    test_label = np.argmax(test['test_label'], axis=-1)
+    
+    test_label_restore = []
+    
+    for i in range(len(y_xgb_valid)):
+        
+        if y_xgb_valid[i] == 0: 
+            test_label_restore.append(0)
+        else:
+            test_label_restore.append(2)
+    
+    print("Test Accuracy [ratio]: ",accuracy_score(test_label_restore, test_label))
+    
+
+def get_model(lag_day):
+
+    
+    
+    clean_stocks = {}
+    MtestSamples = 0
+    
+ 
+    #kgj + ratio + ud 
+    mask_list = list(range(66, 70)) + list(range(81,86))  + list(range(91, 94))
+    mask = []
+    for i in range(94):
+        if i in mask_list: mask.append(True)
+        else: mask.append(False)
+    
+    for s in f.index:
+    
+        single_stock = tv_gen._selectData2array(f, [s], None)
+        
+        tmpStock = []
+        for i in range(len(single_stock)):
+            if not np.isnan(single_stock[i,0:5]).all():
+                tmpStock.append(single_stock[i])
+        single_stock = np.array(tmpStock)
+        data_velocity= (single_stock[1:,0:4] - single_stock[:-1,0:4])/(single_stock[:-1,0:4] + 0.1)
+        data = single_stock[1:]
+        
+        delay_data = data[:-lag_day]
+        delay_data_velocity = data_velocity[:-lag_day]
+        label = data[lag_day:, -3:]
+        
+        clean_stocks[s] = { 'train': delay_data,
+                            'train_velocity': delay_data_velocity,
+                            'train_label': label}
+                           
+    
+    train = {}
+    train['train'] = np.concatenate([clean_stocks[s]['train'] for s in  clean_stocks], axis=0)
+    train['train_velocity'] = np.concatenate([clean_stocks[s]['train_velocity'] for s in  clean_stocks], axis=0)
+    train['train_label'] = np.concatenate([clean_stocks[s]['train_label'] for s in  clean_stocks], axis=0)
+    
+    
+    train_fe = ens.feature_extractor(train['train'], train['train_velocity'] )
+    train_label_raw = np.stack((train['train_label'][:, -3] + train['train_label'][:, -2] , train['train_label'][:, -1]), axis=1)
+    
+    #train_label_raw = train['train_label']
+    #test_label_raw = test['test_label']
+    
+    train_data = train_fe.ratio_velocity()
+    train_label = np.argmax(train_label_raw, axis=-1)
+    
+    
+    model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=False)
+    m = model.fit(train_data, train_label)
+    
+    
+    return m
+
+
 import trial_xgboost_ensCls as ens
+m1 = get_model(1)
+m2 = get_model(2)
+m3 = get_model(3)
+m4 = get_model(4)
+m5 = get_model(5)
 
 
-m_1 = ens.get_ens_model(1)
-m_2 = ens.get_ens_model(2)
-m_3 = ens.get_ens_model(3)
-m_4 = ens.get_ens_model(4)
-m_5 = ens.get_ens_model(5)
+clean_stocks = {}
+MtestSamples = 0
 
-single_stock = tv_gen._selectData2array(f, ['006203'], None)
-data_velocity= (single_stock[1:,0:4] - single_stock[:-1,0:4])/(single_stock[:-1,0:4] + 0.1)
-data = single_stock[1:]
+ 
+#kgj + ratio + ud 
+mask_list = list(range(66, 70)) + list(range(81,86))  + list(range(91, 94))
+mask = []
+for i in range(94):
+    if i in mask_list: mask.append(True)
+    else: mask.append(False)
 
-fe_train = ens.feature_extractor(data, data_velocity)
-d_ratio = fe_train.ratio()
-#p1 = m_1['ratio'].predict(np.reshape(d_ratio[-1], (1,-1)))
-p1 = m_1['ratio'].predict(d_ratio)
-p2 = m_2['ratio'].predict(d_ratio)
-p3 = m_3['ratio'].predict(d_ratio)
-p4 = m_4['ratio'].predict(np.reshape(d_ratio[-1], (1,-1)))
-p5 = m_5['ratio'].predict(np.reshape(d_ratio[-1], (1,-1)))
+predict_cls = {}
 
+for s in f.index:
+
+    single_stock = tv_gen._selectData2array(f, [s], None)
+    
+    tmpStock = []
+    for i in range(len(single_stock)):
+        if not np.isnan(single_stock[i,0:5]).all():
+            tmpStock.append(single_stock[i])
+    single_stock = np.array(tmpStock)
+    data_velocity= (single_stock[1:,0:4] - single_stock[:-1,0:4])/(single_stock[:-1,0:4] + 0.1)
+    data = single_stock[1:]
+    
+    delay_data = data
+    delay_data_velocity = data_velocity
+    label = data[:, -3:]
+    
+    train_fe = ens.feature_extractor(delay_data, delay_data_velocity )
+    train_data = train_fe.ratio_velocity()
+    
+    inputs = np.reshape(train_data[-1], (1,-1))
+    p1 = m1.predict(inputs)
+    p2 = m1.predict(inputs)
+    p3 = m1.predict(inputs)
+    p4 = m1.predict(inputs)
+    p5 = m1.predict(inputs)
+    
+    
+    tmp_p = np.array([p1, p2, p3, p4, p5])
+ 
+    restore = []
+    
+    for i in range(5):
+        if tmp_p[i] == 0:
+            restore.append(-1)
+        else:
+            restore.append(1)
+            
+    predict_cls[s] = np.array(restore)
+
+
+#**********Write to submit file********************
+    
+columns = ['ETFid', 'Mon_ud', 'Mon_cprice', 'Tue_ud', 'Tue_cprice',
+          'Wed_ud', 'Wed_cprice	', 'Thu_ud', 'Thu_cprice', 'Fri_ud',	'Fri_cprice']
+
+df = pd.DataFrame(columns=columns)  
+idx = 0
+
+for s in f.index:     
+    results = [s]
+    for i in range(5):
+        results.append(predict_cls[s][i])
+        results.append(price_list[s][i])
+        
+    
+    df.loc[idx] = results
+    idx+=1
+
+df = df.set_index('ETFid') 
+df.to_csv('../submission/submit_20180520.csv', sep=',')
+
+
+#raw = tv_gen._selectData2array(f, f.index, None)
+#
+#fe_train = ens.feature_extractor(data, data_velocity)
+#d_ratio = fe_train.ud()
+##p1 = m_1['ratio'].predict(np.reshape(d_ratio[-1], (1,-1)))
+#input_data = np.reshape(d_ratio[-1], (1,-1))
+#p1 = m_1['ud'].predict(input_data)
+#p2 = m_2['ud'].predict(input_data)
+#p3 = m_3['ratio'].predict(input_data)
+#p4 = m_4['ratio'].predict(input_data)
+#p5 = m_5['ratio'].predict(input_data)
+#
 
 
 #*************Test model is valid***************

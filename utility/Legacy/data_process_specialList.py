@@ -188,8 +188,12 @@ class train_validation_generaotr:
 #########Simple Demo#############
         
 def read_special_data(train_windows, predict_windows, train_val_ratio, stock_list,is_special_list = False, 
+<<<<<<< HEAD:data_process_specialList.py
+                    filepath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl'):
+=======
                     filepath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_0_89.pkl',
                     metafile = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl'):
+>>>>>>> 998e48c0bac49db7e50251fd7f5b017842901e80:utility/Legacy/data_process_specialList.py
 
 #    train_windows = 50
 #    predict_windows = 5
@@ -198,8 +202,13 @@ def read_special_data(train_windows, predict_windows, train_val_ratio, stock_lis
     
     
     import pickle
+<<<<<<< HEAD:data_process_specialList.py
+    f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm[0]_59.pkl', 'rb')
+    #f = open('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm[0]_59.pkl', 'rb')
+=======
     #f = open('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_0_89.pkl', 'rb')
     f = open(metafile, 'rb')
+>>>>>>> 998e48c0bac49db7e50251fd7f5b017842901e80:utility/Legacy/data_process_specialList.py
     
     _ = pickle.load(f)
     _ = pickle.load(f)

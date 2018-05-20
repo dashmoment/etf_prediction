@@ -119,25 +119,34 @@ class model_zoo:
 
 
     def baseline_encReg_biderect_gru_cls(self):
-
-#        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+        def project_fn(tensor):
             
-#            l1 = tf.layers.Dense(16, name="output_project",  activation=tf.nn.relu)
-#            l2 = tf.layers.Dense(16, name="output_project",  activation=tf.nn.relu)
-#            l3 = tf.layers.Dense(3, name="output_project",  activation=None)
-#            
-#            net = l1(self.inputs)
-#            net = l2(net)
-#            self.decoder_output = l3(net)
+            output_projecter = tf.layers.Dense(15, name="output_project")  
+        
+            if self.is_train:
+                tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
+            d_layer = output_projecter(tensor)
+            d_layer = tf.reshape(d_layer, (-1, self.conf['predict_step'], 3))
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', initializer=tf.orthogonal_initializer(), reuse=tf.AUTO_REUSE):
+                
+                fw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell, self.dropout)
+                bw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
+                bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell, self.dropout)
+                encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, dtype="float32", scope='gru_bidection')
+                
+                encoder_output = tf.concat(encoder_output, 2)   
+                encoder_output = tf.transpose(encoder_output, (1,0,2))
+                
+                self.decoder_output = project_fn(encoder_output[-1])
 
-#            cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'])
-#            init_state = cell.zero_state(self.conf['batch_size'], dtype=tf.float32) 
-#            encoder_output,final_state = tf.nn.dynamic_rnn(cell, self.inputs, initial_state=init_state)
-#            encoder_output = tf.transpose(encoder_output, (1,0,2))
-#            output_projecter = tf.layers.Dense(15, name="output_project") 
-#            self.decoder_output = output_projecter(encoder_output[-1]) 
-#            self.decoder_output = tf.reshape(self.decoder_output, (-1,5,3))
-            
+    def baseline_encReg_biderect_gru_cls_gruRelu(self):
 
         
         def project_fn(tensor):
@@ -147,6 +156,38 @@ class model_zoo:
             if self.is_train:
                 tensor = tf.nn.dropout(tensor, keep_prob=self.dropout)
             d_layer = output_projecter(tensor)
+            d_layer = tf.reshape(d_layer, (-1, self.conf['predict_step'], 3))
+                    
+            return d_layer
+        
+        with tf.variable_scope('baseline', reuse=tf.AUTO_REUSE):
+        
+            with tf.variable_scope('encoder', initializer=tf.orthogonal_initializer(), reuse=tf.AUTO_REUSE):
+                
+                fw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'], activation=tf.nn.relu)
+                fw_cell = tf.contrib.rnn.DropoutWrapper(fw_cell, self.dropout)
+                bw_cell = tf.contrib.rnn.GRUCell(self.conf['n_lstm_hidden_units'], activation=tf.nn.relu)
+                bw_cell = tf.contrib.rnn.DropoutWrapper(bw_cell, self.dropout)
+                encoder_output,final_state = tf.nn.bidirectional_dynamic_rnn(fw_cell, bw_cell, self.inputs, dtype="float32", scope='gru_bidection')
+                
+                encoder_output = tf.concat(encoder_output, 2)   
+                encoder_output = tf.transpose(encoder_output, (1,0,2))
+                
+                self.decoder_output = project_fn(encoder_output[-1])
+
+    def baseline_encReg_biderect_gru_cls_gruDenseRelu(self):
+        
+        def project_fn(tensor):
+
+            l1 = tf.layers.Dense(16, name="output_project",  activation=tf.nn.relu)
+            l2 = tf.layers.Dense(16, name="output_project",  activation=tf.nn.relu)
+            output_projecter = tf.layers.Dense(15, name="output_project")  
+            
+            d_layer = l1(tensor)
+            d_layer = l2(d_layer)
+            if self.is_train:
+                tensor = tf.nn.dropout(d_layer, keep_prob=self.dropout)
+            d_layer = output_projecter(d_layer)
             d_layer = tf.reshape(d_layer, (-1, self.conf['predict_step'], 3))
                     
             return d_layer

@@ -10,7 +10,7 @@ import loss_func as l
 
 
 tf.reset_default_graph()  
-c = conf.config('test_onlyEnc_biderect_gru_nospecialstock_cls').config['common']
+c = conf.config('test_onlyEnc_biderect_gru_nospecialstock_DenseRelu_cls').config['common']
 sample_window = c['input_step'] + c['predict_step']
 
 tv_gen = dp.train_validation_generaotr()

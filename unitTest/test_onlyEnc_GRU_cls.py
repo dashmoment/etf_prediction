@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 import hparam as conf
 import sessionWrapper as sesswrapper
-from utility import data_process as dp
+from utility import dataProcess as dp
 import model_zoo as mz
 import loss_func as l
 

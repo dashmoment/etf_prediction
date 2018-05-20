@@ -340,7 +340,7 @@ class config:
         conf['save_ckpt_epoch'] = 100
         conf['evaluation_epoch'] = 100
         conf['total_epoch'] = 100000
-        conf['current_epoch'] = 0
+        conf['current_epoch'] = 100
 
     def test_onlyEnc_biderect_gru_nospecialstock(self):
         
@@ -354,8 +354,6 @@ class config:
         #conf['input_stocks'] = ['0050']
         
         conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204']
-        #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204', '006208','00690', '00692', '00701', '00713']
-        #conf['train_period'] =  ['20130102', '20180711']
         conf['train_period'] =  None
         conf['eval_period'] =  ['20170311', '20180402']
         

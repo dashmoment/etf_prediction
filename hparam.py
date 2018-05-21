@@ -703,15 +703,15 @@ class config:
         
         #Data Attributes
 
-        conf['src_file_path'] =  '/home/dashmoment/workspace/etf_prediction/Data/all_feature_data_Nm_1_MinMax_94.pkl'
-        conf['meta_file_path'] = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm_1_MinMax_94.pkl'
+        #conf['src_file_path'] =  '/home/dashmoment/workspace/etf_prediction/Data/all_feature_data_Nm_1_MinMax_94.pkl'
+        #conf['meta_file_path'] = '/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm_1_MinMax_94.pkl'
         
         #conf['src_file_path'] =  '/Users/fine/workspace/etf_prediction/Data/all_feature_data_Nm_1_Standard_99.pkl'
         #conf['meta_file_path'] = '/Users/fine/workspace/etf_prediction/Data/all_meta_data_Nm_1_Standard_99.pkl'
         
         
-        #conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_104.pkl'
-        #conf['meta_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_104.pkl'
+        conf['src_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
+        conf['meta_file_path'] = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
         conf['input_stocks'] = ['0050']
         
         #conf['input_stocks'] = ['0050', '0051',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', '006203', '006204']

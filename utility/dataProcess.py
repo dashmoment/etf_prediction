@@ -269,11 +269,83 @@ class train_validation_generaotr:
 
 
 
+class data_processor:
+    
+    def __init__(self, srcPath, lagday = 0, period = None, stockList = None):
         
+        self.srcPath = srcPath
+        self.lagday = lagday 
+        self.period = period 
+        self.stockList = stockList
+        
+    def clean_data(self):
+        
+        tv_gen = train_validation_generaotr()
+        f = tv_gen._load_data(self.srcPath)
+        
+        if self.stockList == None:
+            self.stockList = f.index
+        else:
+            self.stockList = self.stockList
+        
+        clean_stock = {}
+        
+        for s in self.stockList:
+            single_stock = tv_gen._selectData2array(f, [s],  self.period)
+            tmpStock = []
+            
+            for i in range(len(single_stock)):
+                if not np.isnan(single_stock[i,0:5]).all():
+                    tmpStock.append(single_stock[i])
+            single_stock = np.array(tmpStock)
+            
+            if self.lagday > 0:
+                data = single_stock[:-self.lagday]
+                label = single_stock[self.lagday:, -3:]
+            else:
+                 data = single_stock
+                 label = single_stock[:, -3:]
 
+            clean_stock[s] = {'data': data,
+                              'label_ud':label}
 
-
-
+            
+        return clean_stock
+    
+    def split_train_val_set(self, data, label, split_ratio):
+        
+        split_pivot = int(split_ratio*len(data))
+        train_val_set = {'train': data[:-split_pivot],
+                         'train_label': label[:-split_pivot],
+                         'test': data[-split_pivot:],
+                         'test_label': label[-split_pivot:]}
+        
+        return train_val_set
+    
+    def split_train_val_set_mstock(self, stocks, split_ratio, stock_list = None):
+        
+        
+        single_train_val_set = {}
+        
+        if stock_list == None: stock_list =  stocks
+        
+        for k in stock_list:
+            stock = stocks[k]
+            tmpdata = stock['data']
+            tmp_label = stock['label_ud']
+            tmp_train_val_set = self.split_train_val_set(tmpdata, tmp_label, split_ratio)   
+            single_train_val_set[k] = tmp_train_val_set
+        
+        train_val_set = {}
+        train_val_set['train'] = np.concatenate([single_train_val_set[k]['train'] for k in single_train_val_set], axis=0)
+        train_val_set['train_label'] = np.concatenate([single_train_val_set[k]['train_label'] for k in single_train_val_set], axis=0)
+        train_val_set['test'] = np.concatenate([single_train_val_set[k]['test'] for k in single_train_val_set], axis=0)
+        train_val_set['test_label'] = np.concatenate([single_train_val_set[k]['test_label'] for k in single_train_val_set], axis=0)
+        return train_val_set
+        
+        
+        
+        
         
         
         

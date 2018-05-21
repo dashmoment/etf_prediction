@@ -20,147 +20,80 @@ from sklearn.metrics import accuracy_score
 from utility_trial import *
 import trial_xgboost_ensCls as ens
 
+lagday = 1
 tv_gen = dp.train_validation_generaotr()
-*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94_0050.pkl')
-f = tv_gen._load_data('/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94_0050.pkl')
-#data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
+#*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94_0050.pkl')
+#f = tv_gen._load_data('/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94_0050.pkl')
+f = tv_gen._load_data('/home/dashmoment/workspace/etf_prediction/Data/ETF_member/all_feature_data_Nm_1_MinMax_94_0052.pkl')
+*_,meta = gu.read_metafile('/home/dashmoment/workspace/etf_prediction/Data/ETF_member/all_meta_data_Nm_1_MinMax_94_0052.pkl')
+
+_dp = dp.data_processor('/home/dashmoment/workspace/etf_prediction/Data/ETF_member/all_feature_data_Nm_1_MinMax_94_0050.pkl', 
+                        lagday = lagday, period=['20170101', '20180311'])
+
+clean_stock = _dp.clean_data()
+train_val_set = _dp.split_train_val_set_mstock(clean_stock, 0.01)
 
 
+train_fe = ens.feature_extractor(train_val_set['train'], None )
+test_fe = ens.feature_extractor(train_val_set['test'], None)
+train_data_ = train_fe.ratio()
+test_data_ = test_fe.ratio()
 
-
-clean_stocks = {}
-MtestSamples = 20
-lag_day = 1
-
-
-#kgj + ratio + ud 
-mask_list = list(range(66, 70)) + list(range(81,86))  + list(range(91, 94))
-mask = []
-for i in range(94):
-    if i in mask_list: mask.append(True)
-    else: mask.append(False)
-
-stocks = ['0050']
-#stocks = f.index
-
-for s in stocks:
-
-    single_stock = tv_gen._selectData2array(f, [s],  ['20150207','20160321'])
-    
-    tmpStock = []
-    for i in range(len(single_stock)):
-        if not np.isnan(single_stock[i,0:5]).all():
-            tmpStock.append(single_stock[i])
-    single_stock = np.array(tmpStock)
-    data_velocity= (single_stock[1:,0:4] - single_stock[:-1,0:4])/(single_stock[:-1,0:4] + 0.1)
-    data = single_stock[1:]
-    
-#    delay_data = prepro.normalize(data[:-lag_day], axis=0)
-#    delay_data_velocity = prepro.normalize(data_velocity[:-lag_day], axis=0)
-    delay_data = data[:-lag_day]
-    delay_data_velocity = data_velocity[:-lag_day]
-    label = data[lag_day:, -3:]
-    
-    clean_stocks[s] = { 'train': delay_data[:-MtestSamples],
-                        'train_velocity': delay_data_velocity[:-MtestSamples],
-                        'train_label': label[:-MtestSamples],
-                        'test':delay_data[-MtestSamples:],
-                        'test_velocity': delay_data_velocity[-MtestSamples:],
-                        'test_label': label[-MtestSamples:]}
-
-train = {}
-test = {}
-train['train'] = np.concatenate([clean_stocks[s]['train'] for s in  clean_stocks], axis=0)
-train['train_velocity'] = np.concatenate([clean_stocks[s]['train_velocity'] for s in  clean_stocks], axis=0)
-train['train_label'] = np.concatenate([clean_stocks[s]['train_label'] for s in  clean_stocks], axis=0)
-test['test'] = np.concatenate([clean_stocks[s]['test'] for s in  ['0050']], axis=0)
-test['test_velocity'] = np.concatenate([clean_stocks[s]['test_velocity'] for s in  ['0050']], axis=0)
-test['test_label'] = np.concatenate([clean_stocks[s]['test_label'] for s in  ['0050']], axis=0)
-
-
-train_fe = ens.feature_extractor(train['train'], train['train_velocity'] )
-test_fe = ens.feature_extractor(test['test'], test['test_velocity'] )
-
-train_label_raw = np.stack((train['train_label'][:, -3] + train['train_label'][:, -2] , train['train_label'][:, -1]), axis=1)
-test_label_raw =  np.stack((test['test_label'][:, -3] + test['test_label'][:, -2], test['test_label'][:, -1]) , axis=1)
-
-#train_label_raw = train['train_label']
-#test_label_raw = test['test_label']
-
-train_data = train_fe.ratio_velocity()
-train_label = np.argmax(train_label_raw, axis=-1)
-test_data = test_fe.ratio_velocity()
-test_label = np.argmax(test_label_raw, axis=-1)
-
+#train_label_raw = np.stack((train_val_set['train_label'][:, -3] + train_val_set['train_label'][:, -2] , train_val_set['train_label'][:, -1]), axis=1)
+#test_label_raw =  np.stack((train_val_set['test_label'][:, -3] + train_val_set['test_label'][:, -2], train_val_set['test_label'][:, -1]) , axis=1)
+train_label_raw = train_val_set['train_label']
+test_label_raw = train_val_set['test_label']
+train_label_ = np.argmax(train_label_raw, axis=-1)
+test_label_ = np.argmax(test_label_raw, axis=-1)
+test_label_restore = np.argmax(train_val_set['test_label'], axis=-1)
 
 model = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=False)
-model.fit(train_data, train_label)
-y_xgb_train = model.predict(train_data)
-y_xgb_valid = model.predict(test_data)
+model.fit(train_data_, train_label_)
+y_xgb_train = model.predict(train_data_)
+y_xgb_valid = model.predict(test_data_)
         
-print("Train Accuracy [ratio]: ", accuracy_score(y_xgb_train, train_label))
-print("Validation Accuracy [ratio]: ",accuracy_score(y_xgb_valid, test_label))
+print("Train Accuracy [ratio]: ", accuracy_score(y_xgb_train, train_label_))
+print("Validation Accuracy [ratio]: ",accuracy_score(y_xgb_valid, test_label_))
 
-test_label = np.argmax(test['test_label'], axis=-1)
-test_label_restore = []
-
+y_xgb_valid_restore = []
 for i in range(len(y_xgb_valid)):
     
     if y_xgb_valid[i] == 0: 
-        test_label_restore.append(0)
+        y_xgb_valid_restore.append(0)
     else:
-        test_label_restore.append(2)
+        y_xgb_valid_restore.append(2)
 
-print("Test Accuracy [ratio]: ",accuracy_score(test_label_restore, test_label))
+print("Test Accuracy [ratio]: ",accuracy_score(y_xgb_valid_restore, test_label_restore))
 
 
-#***************Get recent data for test******************
-clean_stocks_test = {}
-for s in stocks:
 
-    single_stock = tv_gen._selectData2array(f, [s],  ['20180321','20180504'])
+#*********************************Test by latest data**********************************************
+_dp_latest = dp.data_processor('/home/dashmoment/workspace/etf_prediction/Data/ETF_member/all_feature_data_Nm_1_MinMax_94_0050.pkl', 
+                        lagday = lagday, period=['20180311', '20180520'])
+
+clean_stock_latest = _dp_latest.clean_data()
+stock = clean_stock_latest['0050']
+test_data_ = stock['data']
+test_label_ = stock['label_ud']
+
+test_fe = ens.feature_extractor(test_data_, None )
+test_data_ = test_fe.ratio()
+#test_label_raw =  np.stack((test_label_[:, -3] + test_label_[:, -2], test_label_[:, -1]) , axis=1)
+test_label_raw = test_label_[:]
+test_label_simple = np.argmax(test_label_raw, axis=-1)
+test_label_restore = np.argmax(test_label_, axis=-1)
+y_xgb_test = model.predict(test_data_)
+
+print("Validation Accuracy [ratio]: ", accuracy_score(y_xgb_test, test_label_simple))
+y_xgb_test_restore = []
+for i in range(len(y_xgb_test)):
     
-    tmpStock = []
-    for i in range(len(single_stock)):
-        if not np.isnan(single_stock[i,0:5]).all():
-            tmpStock.append(single_stock[i])
-    single_stock = np.array(tmpStock)
-    data_velocity= (single_stock[1:,0:4] - single_stock[:-1,0:4])/(single_stock[:-1,0:4] + 0.1)
-    data = single_stock[1:]
-    
-#    delay_data = prepro.normalize(data[:-lag_day], axis=0)
-#    delay_data_velocity = prepro.normalize(data_velocity[:-lag_day], axis=0)
-    delay_data = data[:-lag_day]
-    delay_data_velocity = data_velocity[:-lag_day]
-    label = data[lag_day:, -3:]
-    
-    clean_stocks_test[s] = { 'train': delay_data,
-                            'train_velocity': delay_data_velocity,
-                            'train_label': label}
-                      
-train = {}
-train['train'] = np.concatenate([clean_stocks_test[s]['train'] for s in  clean_stocks_test], axis=0)
-train['train_velocity'] = np.concatenate([clean_stocks_test[s]['train_velocity'] for s in  clean_stocks_test], axis=0)
-train['train_label'] = np.concatenate([clean_stocks_test[s]['train_label'] for s in  clean_stocks_test], axis=0)
-train_fe = ens.feature_extractor(train['train'], train['train_velocity'] )
-train_label_raw = np.stack((train['train_label'][:, -3] + train['train_label'][:, -2] , train['train_label'][:, -1]), axis=1)
-train_data = train_fe.ratio_velocity()
-train_label = np.argmax(train_label_raw, axis=-1)
+    if y_xgb_test[i] == 0: 
+        y_xgb_test_restore.append(0)
+    else:
+        y_xgb_test_restore.append(2)
 
-y_xgb_train = model.predict(train_data)
-        
-print("Test 2018 Accuracy [ratio]: ",accuracy_score(y_xgb_train, train_label))
+print("Test Accuracy [ratio]: ", accuracy_score(y_xgb_test_restore, test_label_restore))
 
 
 
-
-
-
-
-
-
-
-
-
-
-   # return [test_label, test_label_restore ]

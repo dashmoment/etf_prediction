@@ -11,6 +11,7 @@ import loss_func as l
 import sklearn.preprocessing as prepro
 import xgboost as xgb
 from sklearn.metrics import accuracy_score
+import pandas as pd
 
 
 class feature_extractor:
@@ -18,7 +19,7 @@ class feature_extractor:
         self.featurelist = featurelist
         self.data = data
         
-    def rssi(self):
+    def rsi(self):
         featuremask = [i for i in range(len(self.featurelist)) if 'RSI' in self.featurelist[i]]
         features = gather_features(self.data, featuremask)
         return features, featuremask
@@ -42,6 +43,50 @@ class feature_extractor:
         featuremask = [i for i in range(len(self.featurelist)) if 'UD' in self.featurelist[i]]
         features = gather_features(self.data, featuremask)
         return features, featuremask
+
+
+def get_data_from_dow(raw, stocks, meta, lagfday, feature_list = ['ratio']):
+    
+    df = pd.DataFrame({'date':raw.columns})
+    df['date'] = pd.to_datetime(df['date'])
+    df['dow'] = df['date'].dt.dayofweek
+    dow_array = np.array(df['dow'][-len(stocks):])
+    dow_array_mask_mon =  np.equal(dow_array, lagfday)
+     
+    def get_mask(dow_array_mask_mon):
+         for i in range(5):
+             dow_array_mask_mon[i] = False
+         
+         dow_array_mask = [dow_array_mask_mon]
+         for j in range(1, 5):
+             tmp_mask = np.zeros(np.shape(dow_array_mask_mon), np.bool)
+             for i in range(1, len(dow_array_mask_mon)):
+                if dow_array_mask_mon[i] == True: 
+                    tmp_mask[i-j] = True              
+                else: 
+                    tmp_mask[i] = False
+             dow_array_mask.append(tmp_mask)
+         return dow_array_mask
+
+    dow_array_mask = get_mask(dow_array_mask_mon)
+    
+    
+    dow = {0:'mon', 1:'tue', 2:'wed', 3:'thu', 4:'fri'}
+    features = {}
+    
+    for d in range(5):
+        features[dow[d]] = {}
+        shifted_stock = stocks[dow_array_mask[d]]
+        shifted_stock = shifted_stock[:-1]
+        
+        fe = feature_extractor(meta, shifted_stock)
+        
+        for feature_name in feature_list:
+            features[dow[d]][feature_name], _ = getattr(fe, feature_name)()
+            
+    label = np.argmax(stocks[dow_array_mask[0]][1:, -3:], axis=-1)
+    
+    return features, label
 
 def gather_features(data, feature_mask):
 
@@ -166,3 +211,9 @@ def restore_accuracy(predict, label):
     return accuracy_score(y_xgb_predict, label)
 
 
+
+def map_ud(predict):
+
+    mapper = {0:-1, 1:0, 2:1}
+
+    return mapper[predict]

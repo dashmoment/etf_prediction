@@ -12,6 +12,37 @@ import sklearn.preprocessing as prepro
 import xgboost as xgb
 from sklearn.metrics import accuracy_score
 
+
+class feature_extractor:
+    def __init__(self, featurelist, data):
+        self.featurelist = featurelist
+        self.data = data
+        
+    def rssi(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'RSI' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
+    
+    def kdj(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'KDJ' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
+    
+    def ratio(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'ratio' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
+    
+    def macd(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'MACD' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
+    
+    def ud(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'UD' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
+
 def gather_features(data, feature_mask):
 
     mask = np.zeros(np.shape(data)[-1], dtype= bool)
@@ -118,4 +149,20 @@ def feature_expert_trail(rawdata, feature_mask, label = [], normalize=True, axis
     p = example_xgb(train, train_label, list(range(len(feature_mask))))
 
     return p
+
+def restore_accuracy(predict, label):
+    
+    y_xgb_predict = []
+
+    for i in range(len(predict)):
+    
+        if predict[i] == 0: 
+            y_xgb_predict.append(0)
+        else:
+            y_xgb_predict.append(2)
+
+    print("Test Accuracy [ratio]: ", accuracy_score(y_xgb_predict, label))
+
+    return accuracy_score(y_xgb_predict, label)
+
 

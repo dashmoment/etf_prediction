@@ -26,15 +26,15 @@ f = tv_gen._load_data('/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1
 clean_stocks = {}
 for s in f.index:
 
-    single_stock = tv_gen._selectData2array(f, [s], ['20150207','20160118'])
+    single_stock = tv_gen._selectData2array(f, [s], ['20150207','20180118'])
     
     tmpStock = []
     for i in range(len(single_stock)):
         if not np.isnan(single_stock[i,0:5]).all():
-            tmpStock.append(single_stock[i])
+            tmpStock.append(single_stock[i, -3:])
     clean_stocks[s] = np.array(tmpStock)
     
-    stock = clean_stocks['0050']
+stock = clean_stocks['0050']
 
 stocks_lag5 = []
 stocks_lag5_label = []
@@ -42,7 +42,7 @@ stocks_lag5_label = []
 global_prob = np.zeros((5,3)) 
 true_series_label = []
 
-inputs = stock[:-5, :-3]
+inputs = stock[:-5, -3:]
 labels = stock[5:, -3:]
 
 shifted_data = np.concatenate((inputs, labels), axis=1)
@@ -66,7 +66,7 @@ for i in range(0, len(shifted_data)-5, 2):
             tmp_up+=1
             global_prob[j,2] += 1 
         
-        tmp_info.append(shifted_data[i+j, 66:70])
+        tmp_info.append(shifted_data[i+j, :-3])
         tmp_label.append(shifted_data[i+j,-3:])
     
     stocks_lag5.append(np.concatenate(tmp_info))  

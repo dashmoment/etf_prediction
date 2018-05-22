@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue May 22 10:00:31 2018
+
+@author: ubuntu
+"""
+
 import sys
 sys.path.append('../')
 import numpy as np
@@ -27,10 +35,10 @@ tv_gen = dp.train_validation_generaotr()
 #f = tv_gen._load_data('/home/dashmoment/workspace/etf_prediction/Data/ETF_member/all_feature_data_Nm_1_MinMax_94_0052.pkl')
 #*_,meta = gu.read_metafile('/home/dashmoment/workspace/etf_prediction/Data/ETF_member/all_meta_data_Nm_1_MinMax_94_0052.pkl')
 
-#stock_list =  ['0050',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', 
-#               '006203', '006204', '006208','00690', '00692', '00701', '00713']
+stock_list =  ['0050',  '0052', '0053', '0054', '0055', '0056', '0057', '0058', '0059', '006201', 
+               '006203', '006204', '006208','00690', '00692', '00701', '00713']
 
-stock_list = ['0055']
+
 score = {}
 for sk in stock_list:
     
@@ -45,7 +53,7 @@ for sk in stock_list:
 #                            stockList = [sk])
     
     _dp = dp.data_processor(src_path, 
-                            lagday = lagday, period=['20160101', '2016531'])
+                            lagday = lagday, period=['20130101', '20180311'])
     
     clean_stock = _dp.clean_data()
     train_val_set = _dp.split_train_val_set_mstock(clean_stock, 0.01)
@@ -72,8 +80,6 @@ for sk in stock_list:
     print("Train Accuracy [ratio]: ", accuracy_score(y_xgb_train, train_label_))
     print("Validation Accuracy [ratio]: ",accuracy_score(y_xgb_valid, test_label_))
     
-    
-   
     
     score[sk]['train'] = accuracy_score(y_xgb_train, train_label_)
     score[sk]['validation'] = accuracy_score(y_xgb_valid, test_label_)
@@ -112,7 +118,7 @@ for sk in stock_list:
     score[sk]['test_restore'] = restore_accuracy(y_xgb_test_5day, test_label_restore_5day)
     
     
-score_0054 = score 
+score_all = score 
 
 
 

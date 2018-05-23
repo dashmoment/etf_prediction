@@ -212,8 +212,3 @@ def restore_accuracy(predict, label):
 
 
 
-def map_ud(predict):
-
-    mapper = {0:-1, 1:0, 2:1}
-
-    return mapper[predict]

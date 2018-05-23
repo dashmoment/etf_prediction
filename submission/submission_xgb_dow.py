@@ -81,9 +81,9 @@ for s in stock_list:
          model.fit(train_data, train_label)
             
          #********For submission***********
-#         test_data = np.reshape(test_data[-1,:], (1,-1))
-#         ud = gu.map_ud(model.predict(test_data)[0])
-#         predict_ud[s].append(ud)
+         test_data = np.reshape(test_data[-1,:], (1,-1))
+         ud = gu.map_ud(model.predict(test_data)[0])
+         predict_ud[s].append(ud)
          
          #********For test************
 #         p = model.predict(test_data)   

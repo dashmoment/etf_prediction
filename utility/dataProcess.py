@@ -2,8 +2,17 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from utility import general_utility as ut
+from utility import featureExtractor as fe_extr
 
 verbose_state = True
+
+def get_data_by_date(raw, startDay, period):
+
+    index = [idx for idx in range(len(raw.columns)) if raw.columns[idx] == startDay]
+    period_list = [raw.columns[idx] for idx in range(index[0], index[0]+period)]
+    data_in_period = raw[period_list]
+    
+    return data_in_period
 
 def print_c(print_content, verbose = verbose_state):
     
@@ -41,7 +50,6 @@ class train_validation_generaotr:
                 
         
         stock = data.loc[stock_IDs]
-#        stock = stock.dropna(axis=1)
         stock = np.hstack(np.array(stock))
         stock = np.vstack(stock)
 
@@ -50,6 +58,19 @@ class train_validation_generaotr:
             stock =np.dstack(stock)
         
         return stock
+
+    def _selectData2array_specialDate(self, raw, dates, period, stock_IDs):
+
+        data_by_dates = []
+        for d in dates:
+            data_by_dates.append(get_data_by_date(raw, d, 21))
+            
+        data_by_dates = pd.concat(data_by_dates, axis=1)
+        stock = data_by_dates.loc[stock_IDs]
+        stock = np.vstack(stock)
+
+        return stock
+
     
     def _split_train_val_side_by_side(self, data, train_windows, predict_windows, train_val_ratio):
         
@@ -343,8 +364,111 @@ class data_processor:
         train_val_set['test_label'] = np.concatenate([single_train_val_set[k]['test_label'] for k in single_train_val_set], axis=0)
         return train_val_set
         
+def clean_stock(single_stock, meta, feature_list):
+
+    tmpStock = []
+
+    fe = fe_extr.feature_extractor(meta, single_stock)
+
+    feature_mask = []
+    _, tmp_mask = getattr(fe, 'ratio')()
+    feature_mask += tmp_mask
+
+    for f in feature_list:
+        _, tmp_mask = getattr(fe, f)()
+        feature_mask += tmp_mask
+
+    for i in range(len(single_stock)):
+        if not np.isnan(single_stock[i,feature_mask]).any():
+            tmpStock.append(single_stock[i])
+    single_stock = np.array(tmpStock)
+
+    return single_stock
+
+def get_data_from_dow(raw, stocks, meta, predict_day, feature_list = ['ratio'], isShift = True):
+
+    stocks = clean_stock(stocks,meta, feature_list)   
+    
+    df = pd.DataFrame({'date':raw.columns})
+    df['date'] = pd.to_datetime(df['date'])
+    df['dow'] = df['date'].dt.dayofweek
+    dow_array = np.array(df['dow'][-len(stocks):])
+    dow_array_mask_mon =  np.equal(dow_array, predict_day)
+     
+    def get_mask(dow_array_mask_mon):
+         for i in range(5):
+             dow_array_mask_mon[i] = False
+         
+         dow_array_mask = [dow_array_mask_mon]
+         for j in range(1, 5):
+             tmp_mask = np.zeros(np.shape(dow_array_mask_mon), np.bool)
+             for i in range(1, len(dow_array_mask_mon)):
+                if dow_array_mask_mon[i] == True: 
+                    tmp_mask[i-j] = True              
+                else: 
+                    tmp_mask[i] = False
+             dow_array_mask.append(tmp_mask)
+         return dow_array_mask
+
+    dow_array_mask = get_mask(dow_array_mask_mon)
+    
+    
+    dow = {0:'mon', 1:'tue', 2:'wed', 3:'thu', 4:'fri'}
+    features = {}
+    
+    for d in range(5):
+        features[dow[d]] = {}
+        shifted_stock = stocks[dow_array_mask[d]]
+
+        if isShift == True: shifted_stock = shifted_stock[:-1]      
+        fe = fe_extr.feature_extractor(meta, shifted_stock)
         
+        for feature_name in feature_list:
+            features[dow[d]][feature_name], _ = getattr(fe, feature_name)()
+            
+    if isShift == True: label = np.argmax(stocks[dow_array_mask[0]][1:, -3:], axis=-1)
+    else: label = np.argmax(stocks[dow_array_mask[0]][:, -3:], axis=-1)
+
+    return features, label     
+
+def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio']):
+
+    stocks = clean_stock(stocks,meta, feature_list)  
+    current_mask =  np.ones(len(stocks), np.bool)
+    
+    def get_mask(current_mask):
+         for i in range(5):
+             current_mask[i] = False
+         
+         shift_array_mask = [current_mask]
+         for j in range(1, 5):
+             tmp_mask = np.zeros(np.shape(current_mask), np.bool)
+             for i in range(1, len(current_mask)):
+                if current_mask[i] == True: 
+                    tmp_mask[i-j] = True              
+                else: 
+                    tmp_mask[i] = False
+             shift_array_mask.append(tmp_mask)
+         return shift_array_mask
+    
+    mask = get_mask(current_mask)
+    
+    features = {}
+    
+    for d in range(5):
+        features[d] = {}
+        shifted_stock = stocks[mask[d]]
+        shifted_stock = shifted_stock[:-predict_day]
         
+        fe = fe_extr.feature_extractor(meta, shifted_stock)
+        
+        for feature_name in feature_list:
+            features[d][feature_name], _ = getattr(fe, feature_name)()
+            
+    label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
+    
+    return features, label
+
         
         
         

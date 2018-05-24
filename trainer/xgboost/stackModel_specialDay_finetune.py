@@ -144,7 +144,8 @@ for s in stock_list:
                         
                     else:
                         sample_weight = {}
-                    score = np.mean(cross_val_score(model, train_data, train_label, cv=3, 
+                    score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
+                                                    n_jobs = 3, 
                                                     fit_params = sample_weight))
                    
                     model.fit(train_data, train_label)

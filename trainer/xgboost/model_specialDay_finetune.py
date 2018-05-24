@@ -29,10 +29,11 @@ best_config = {}
 predict_days  = list(range(1, 6))   #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 feature_list_comb = [  
-                        ['ratio', 'velocity'],
-                        ['rsi', 'velocity'],
-                        ['macd', 'velocity'],
+                        #['ratio', 'velocity'],
+                        #['rsi', 'velocity'],
+                        #['macd', 'velocity'],
                         ['velocity'],
+                        ['ma'],
                         ['ratio'],
                         ['rsi'],
                         ['kdj'],

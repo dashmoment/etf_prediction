@@ -44,6 +44,11 @@ class feature_extractor:
         featuremask = [i for i in range(len(self.featurelist)) if 'velocity' in self.featurelist[i]]
         features = gather_features(self.data, featuremask)
         return features, featuremask
+
+    def ma(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'MA' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
     
 def create_velocity(stock, meta):
 

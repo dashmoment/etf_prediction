@@ -38,6 +38,8 @@ date_range = [
 predict_days  = list(range(5))  #The dow wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 feature_list_comb = [
+                        #['velocity'],
+                        ['ma'],
                         ['ratio'],
                         ['rsi'],
                         ['kdj'],
@@ -45,7 +47,7 @@ feature_list_comb = [
                         ['ud']
                     ]
                 
-config  = mc.model_config('rf').get
+config  = mc.model_config('xgb').get
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
 metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
@@ -67,8 +69,11 @@ for s in stock_list:
             for consider_lagday in consider_lagdays:
                 for feature_list in feature_list_comb:
                       
-                      #***************Get train data******************
+                    #***************Get train data******************
+    
+                    
                     single_stock = tv_gen._selectData2array(f, [s], period)
+                    single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
                     features, label = dp.get_data_from_dow(f , single_stock, meta, predict_day, feature_list)
                     
                     feature_concat = []
@@ -76,8 +81,7 @@ for s in stock_list:
                     
                     for i in range(consider_lagday):
                         for k in  features[dow[i]]:
-                            feature_concat.append( features[dow[i]][k])
-                    
+                            feature_concat.append( features[dow[i]][k])          
                     
                     data_feature = np.concatenate(feature_concat, axis=1)
                    
@@ -91,6 +95,7 @@ for s in stock_list:
                     
                     #***************Get test data******************
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180601'])
+                    single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
                     features_test, label_test = dp.get_data_from_dow(f, single_stock_test, meta, predict_day, feature_list)
                     
                     feature_concat_test = []
@@ -144,9 +149,9 @@ for s in stock_list:
     
    
     
-#import pickle
-#with open('../config/best_config_dow.pkl', 'wb') as handle:
-#    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
+import pickle
+with open('../config/best_config_xgb_dow.pkl', 'wb') as handle:
+    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
     

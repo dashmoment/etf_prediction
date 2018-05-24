@@ -28,7 +28,11 @@ stock_list =  [
 best_config = {}            
 predict_days  = list(range(1, 6))   #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
-feature_list_comb = [
+feature_list_comb = [  
+                        ['ratio', 'velocity'],
+                        ['rsi', 'velocity'],
+                        ['macd', 'velocity'],
+                        ['velocity'],
                         ['ratio'],
                         ['rsi'],
                         ['kdj'],
@@ -36,8 +40,8 @@ feature_list_comb = [
                         ['ud']
                     ]
 
-model_config = mc.model_config()                 
-config = model_config['xgb']
+               
+config  = mc.model_config('xgb').get
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
 metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
@@ -62,14 +66,15 @@ for s in stock_list:
                 for corr_date in corrDate_range:
                   
                      #***************Get train data******************
-                    single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:corr_date], 21, s)
-                    features, label = dp.get_data_from_normal(single_stock, meta, predict_day, feature_list)
+                    single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:corr_date], 21, s)      
+                    single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
+                    features, label = dp.get_data_from_normal(single_stock, meta_v, predict_day, feature_list)
                     
                     feature_concat = []
                     
                     for i in range(consider_lagday):
                         for k in  features[i]:
-                            feature_concat.append( features[i][k])
+                            feature_concat.append(features[i][k])
                     
                     data_feature = np.concatenate(feature_concat, axis=1)
                     train_val_set_days = {'train': data_feature,
@@ -82,7 +87,8 @@ for s in stock_list:
                     
                     #***************Get test data******************
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180601'])
-                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta, predict_day, feature_list)
+                    single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
+                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_v, predict_day, feature_list)
                     
                     feature_concat_test = []
                     
@@ -105,12 +111,12 @@ for s in stock_list:
                     
                     sample_weight = gu.get_sample_weight(train_label)
                     if config['fit_param']:
-                        sample_weight = sample_weight
+                        sample_weight = {'sample_weight':sample_weight}
                         
                     else:
                         sample_weight = {}
                     score = np.mean(cross_val_score(model, train_data, train_label, cv=3, 
-                                                    fit_params = {'sample_weight':sample_weight}))
+                                                    fit_params = sample_weight))
                    
                     model.fit(train_data, train_label)
                     y_xgb_train = model.predict(train_data)
@@ -120,7 +126,7 @@ for s in stock_list:
                     
                     if score > best_accuracy:
                         
-                         gsearch2b = GridSearchCV(model,  config['param'], n_jobs=5, cv=3, fit_params = {'sample_weight':sample_weight})
+                         gsearch2b = GridSearchCV(model,  config['param'], n_jobs=5, cv=3, fit_params = sample_weight)
                          gsearch2b.fit(train_data, train_label)
                          best_config[s][predict_day] = {'train acc': accuracy_score(y_xgb_train, train_label),
                                                         'test_acc': accuracy_score(y_xgb_test, test_label),
@@ -133,7 +139,7 @@ for s in stock_list:
                          best_accuracy = accuracy_score(y_xgb_test, test_label)
   
 import pickle
-with open('../config/best_config_speicalDate.pkl', 'wb') as handle:
+with open('../config/best_config_xgb_speicalDate.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

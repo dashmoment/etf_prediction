@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../../')
+sys.path.append('../')
 
 import numpy as np
 import pandas as pd
@@ -8,14 +8,78 @@ import seaborn as sns
 import xgboost as xgb
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, KFold
+from sklearn.base import BaseEstimator, TransformerMixin, RegressorMixin, clone
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import svm
 
 from utility import general_utility as gu
 from utility import featureExtractor as f_extr
 from utility import dataProcess as dp
-import model_config as mc
+#import model_config as mc
 
 
+
+class StackingAveragedModels(BaseEstimator):
+    def __init__(self, base_models, meta_model, n_folds=5):
+        self.base_models = base_models
+        self.meta_model = meta_model
+        self.n_folds = n_folds
+   
+    # We again fit the data on clones of the original models
+    def fit(self, X, y, sample_weight = None):
+        
+     
+        self.base_models_ = [list() for x in self.base_models]
+        self.meta_model_ = clone(self.meta_model)
+        kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=156)
+        
+        # Train cloned base models then create out-of-fold predictions
+        # that are needed to train the cloned meta-model
+        out_of_fold_predictions = np.zeros((X.shape[0], len(self.base_models)))
+        for i, model in enumerate(self.base_models):
+            for train_index, holdout_index in kfold.split(X, y):
+                instance = clone(model)
+                self.base_models_[i].append(instance)
+                instance.fit(X[train_index], y[train_index])
+                y_pred = instance.predict(X[holdout_index])
+                out_of_fold_predictions[holdout_index, i] = y_pred
+                
+        # Now train the cloned  meta-model using the out-of-fold predictions as new feature
+        self.meta_model_.fit(out_of_fold_predictions, y, sample_weight = sample_weight)
+        return self
+   
+    #Do the predictions of all base models on the test data and use the averaged predictions as 
+    #meta-features for the final prediction which is done by the meta-model
+    def predict(self, X):
+        meta_features = np.column_stack([
+            np.column_stack([model.predict_proba(X) for model in base_models]).mean(axis=1)
+            for base_models in self.base_models_ ])
+        return self.meta_model_.predict(meta_features)
+    
+    
+    def score(self, test_data, ground_truth):
+        
+        predict = self.predict(test_data)
+        return accuracy_score(predict, ground_truth)
+    
+    
+ 
+
+    
+def stack_model():
+    
+    xgb_m = xgb.XGBClassifier(max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=False, 
+                                              objective='multi:softmax', num_class=3)   
+    rf = RandomForestClassifier(n_estimators = 100)    
+    svc =  svm.SVC(probability=True)
+    
+    stack_model = StackingAveragedModels([xgb_m, rf, svc], xgb_m)
+    
+    return stack_model
+    
+    
+        
 
 stock_list =  [
                 '0050', '0051',  '0052', '0053', 
@@ -44,8 +108,8 @@ feature_list_comb = [
                         ['macd'],
                         ['ud']
                     ]
-                
-config  = mc.model_config('rf').get
+
+
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
 metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
@@ -110,16 +174,22 @@ for s in stock_list:
                     
                     #*************************************************
                     
-                    model = config['model']
+                    model = stack_model()
                     
-                    sample_weight = gu.get_sample_weight(train_label)
-                    if config['fit_param']:
-                        sample_weight = {'sample_weight':sample_weight}
+                    model.fit(train_data, train_label)
+                    
+                    p = model.predict(train_data)
+                    
+#                    sample_weight = gu.get_sample_weight(train_label)
+#                    if config['fit_param']:
+#                        sample_weight = sample_weight
+#                        
+#                    else:
+#                        sample_weight = {}
                         
-                    else:
-                        sample_weight = {}
+                    sample_weight = gu.get_sample_weight(train_label)
                     score = np.mean(cross_val_score(model, train_data, train_label, cv=3, 
-                                                    fit_params = sample_weight
+                                                    fit_params = {'sample_weight':sample_weight}
                                                     ))
                             
                     model.fit(train_data, train_label)
@@ -128,19 +198,21 @@ for s in stock_list:
                     print("Train Accuracy of day {}: {}".format(predict_day, accuracy_score(y_xgb_train, train_label)))
                     print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(y_xgb_test, test_label)))
                     
-                    if score > best_accuracy:
-                        
-                         gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3, fit_params = sample_weight)
-                         gsearch2b.fit(train_data, train_label)
-                         best_config[s][predict_day] = {'train acc': accuracy_score(y_xgb_train, train_label),
-                                                        'test_acc': accuracy_score(y_xgb_test, test_label),
-                                                        'days': consider_lagday,
-                                                        'cross_score':score,
-                                                        'features': feature_list,
-                                                        'period':period,
-                                                        'model_config':gsearch2b.best_params_,
-                                                        'fintune_score': gsearch2b.best_score_}
-                         best_accuracy = accuracy_score(y_xgb_test, test_label)
+#                    if score > best_accuracy:
+#                        
+#                         gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3, fit_params = {'sample_weight':sample_weight})
+#                         gsearch2b.fit(train_data, train_label)
+#                         best_config[s][predict_day] = {'train acc': accuracy_score(y_xgb_train, train_label),
+#                                                        'test_acc': accuracy_score(y_xgb_test, test_label),
+#                                                        'days': consider_lagday,
+#                                                        'cross_score':score,
+#                                                        'features': feature_list,
+#                                                        'period':period,
+#                                                        'model_config':gsearch2b.best_params_,
+#                                                        'fintune_score': gsearch2b.best_score_}
+#                         best_accuracy = accuracy_score(y_xgb_test, test_label)
+#    
+                 
     
    
     

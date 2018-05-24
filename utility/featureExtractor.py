@@ -2,17 +2,13 @@ import sys
 sys.path.append('../')
 import numpy as np
 import tensorflow as tf
-
-import hparam as conf
-import sessionWrapper as sesswrapper
-from utility import dataProcess as dp
-import model_zoo as mz
-import loss_func as l
 import sklearn.preprocessing as prepro
-import xgboost as xgb
 from sklearn.metrics import accuracy_score
+import xgboost as xgb
 import pandas as pd
 
+from utility import dataProcess as dp
+from utility import featureExtractor as f_extr
 
 class feature_extractor:
     def __init__(self, featurelist, data):
@@ -43,7 +39,23 @@ class feature_extractor:
         featuremask = [i for i in range(len(self.featurelist)) if 'UD' in self.featurelist[i]]
         features = gather_features(self.data, featuremask)
         return features, featuremask
+
+    def velocity(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'velocity' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
     
+def create_velocity(stock, meta):
+
+    fe = f_extr.feature_extractor(meta, stock)
+    f_velocity, _ = getattr(fe, 'ratio')()
+    velocity = f_velocity[1:] - f_velocity[:-1]
+    stock = stock[1:]        
+    stock = np.concatenate((velocity, stock), axis=1)
+    meta_v = ['velocity_1', 'velocity_v2','velocity_v3', 'velocity_v4', 'velocity_v5'] + meta       
+
+    return stock, meta_v
+
     
 def gather_features(data, feature_mask):
 

@@ -168,7 +168,7 @@ for s in stock_list:
                          best_accuracy = accuracy_score(y_xgb_test, test_label)
   
 
-with open('../config/best_config_rf_speicalDate.pkl', 'wb') as handle:
+with open('../config/best_config_stack_speicalDate.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

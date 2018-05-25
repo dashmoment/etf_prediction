@@ -23,15 +23,15 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-#stock_list = ['0050']
+stock_list = ['0050']
 
 best_config = {}            
 predict_days  = list(range(1, 6))   #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 feature_list_comb = [  
-                        #['ratio', 'velocity'],
-                        #['rsi', 'velocity'],
-                        #['macd', 'velocity'],
+                        ['ratio', 'velocity'],
+                        ['rsi', 'velocity'],
+                        ['macd', 'velocity'],
                         ['velocity'],
                         ['ma'],
                         ['ratio'],
@@ -42,7 +42,7 @@ feature_list_comb = [
                     ]
 
                
-config  = mc.model_config('xgb').get
+config  = mc.model_config('svc').get
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
 metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
@@ -140,7 +140,7 @@ for s in stock_list:
                          best_accuracy = accuracy_score(y_xgb_test, test_label)
   
 import pickle
-with open('../config/best_config_xgb_speicalDate.pkl', 'wb') as handle:
+with open('../config/best_config_svc_speicalDate.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

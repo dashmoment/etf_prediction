@@ -27,7 +27,7 @@ class model_config:
   def xgb(self):
 
       conf = {
-                'model': xgb.XGBClassifier( max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=False, 
+                'model': xgb.XGBClassifier( max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=True, 
                                             objective='multi:softmax', num_class=3
                                            ),
                 'param': { 

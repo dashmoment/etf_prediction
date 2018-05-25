@@ -48,8 +48,7 @@ feature_list_comb = [
                     ]
 
 
-model_config = mc.model_config()                 
-config = model_config['xgb']
+mconfig  = mc.model_config('stack').get
 
 #srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
 #metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
@@ -142,9 +141,9 @@ for s in stock_list:
     
    
     
-#import pickle
-#with open('../config/best_config_rf_normal.pkl', 'wb') as handle:
-#    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
+import pickle
+with open('../config/best_config_svc_normal.pkl', 'wb') as handle:
+    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
     

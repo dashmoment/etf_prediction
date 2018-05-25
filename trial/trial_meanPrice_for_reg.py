@@ -20,8 +20,8 @@ import pandas as pd
 def change_raw_columns_name(inputfile:pd.DataFrame):
     inputfile.columns = ["ID", "Date", "name", "open_price", "max", "min", "close_price", "trade"]
     
-#data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
-data_path = '/home/dashmoment/workspace/etf_prediction/Data/raw_data/20180518/tetfp.csv'
+data_path = '/home/ubuntu/shared/workspace/etf_prediction/Data/raw_data/20180518/tetfp.csv'
+#data_path = '/home/dashmoment/workspace/etf_prediction/Data/raw_data/20180518/tetfp.csv'
 tasharep = pd.read_csv(data_path, encoding = "big5-hkscs", dtype=str).dropna(axis = 1) # training data
 change_raw_columns_name(tasharep)
 
@@ -106,6 +106,36 @@ for k in scroe_list:
     avg_score.append(scroe_list[k])
     
 avg_score = np.mean(avg_score)
+
+
+#**********************ma**********************
+scroe_list_ma = {}
+for i in range(10):
+    
+    idx = tasharep_ID_group.groups[tasharep_ID[i]]
+    s = tasharep.iloc[idx]
+    stock_price = s.close_price[-10:]
+    
+    test = stock_price[-5:]
+    train = []
+    for j in range(5):
+        tmp = list(stock_price[j:-5]) + train
+        print(stock_price[i:-5])
+        print('---------')
+        print(tmp)
+        train.append(np.mean(tmp))
+    
+    predict = np.mean(train)   
+    abs_loss = np.abs(predict-test)
+    score_ref = ((test -abs_loss)/test)*0.5
+    scroe_list_ma[tasharep_ID[i]] = (np.sum(score_ref*weighted_array))
+
+avg_score_ma = []
+for k in scroe_list_ma:
+    avg_score_ma.append(scroe_list_ma[k])
+    
+avg_score_ma = np.mean(avg_score_ma)
+
 
 
 

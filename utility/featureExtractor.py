@@ -46,7 +46,7 @@ class feature_extractor:
         return features, featuremask
 
     def ma(self):
-        featuremask = [i for i in range(len(self.featurelist)) if 'MA' in self.featurelist[i]]
+        featuremask = [i for i in range(len(self.featurelist)) if 'MA_' in self.featurelist[i]]
         features = gather_features(self.data, featuremask)
         return features, featuremask
     

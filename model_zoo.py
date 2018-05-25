@@ -388,17 +388,17 @@ from sklearn import svm
 def stacking_avg_model(config):
 
     xgb_base = xgb.XGBClassifier(
-                                max_depth= config['xgb']['max_depth'], 
-                                learning_rate=config['xgb']['learning_rate'],
-                                min_child_weight = config['xgb']['min_child_weight'],
+                                #max_depth= config['xgb']['max_depth'], 
+                                #learning_rate=config['xgb']['learning_rate'],
+                                #min_child_weight = config['xgb']['min_child_weight'],
                                 n_estimators=500, 
                                 objective='multi:softmax', num_class=3
                                 )
     
     rf = RandomForestClassifier(
                                 #max_depth = config['rf']['max_depth'],
-                                max_features = config['rf']['max_features'],
-                                n_estimators = config['rf']['n_estimators'],
+                                #max_features = config['rf']['max_features'],
+                                #n_estimators = config['rf']['n_estimators'],
                                 )    
     svc =  svm.SVC(
                     kernel = config['svc']['kernel'],
@@ -407,7 +407,7 @@ def stacking_avg_model(config):
 
     xgb_meta = xgb.XGBClassifier(
                                 max_depth= 5, 
-                                learning_rate = config['xgb']['learning_rate'] ,
+                                #learning_rate = config['xgb']['learning_rate'] ,
                                 min_child_weight = 1,
                                 n_estimators=800, 
                                 objective='multi:softmax', num_class=3

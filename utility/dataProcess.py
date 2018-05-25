@@ -41,14 +41,13 @@ class train_validation_generaotr:
         #return: len(stock_IDs) == 1: [data_size, feature_size]
         #        len(stock_IDs) > 1: [data_size, feature_size, stocks]   
     
-        print_c("Process data for stock:{}".format(stock_IDs))
+        #print_c("Process data for stock:{}".format(stock_IDs))
     
         #select time period
         if time_period != None:
             mask = (data.columns >= time_period[0]) & (data.columns < time_period[1])
             data = data.iloc[:,mask]
-                
-        
+                       
         stock = data.loc[stock_IDs]
         stock = np.hstack(np.array(stock))
         stock = np.vstack(stock)
@@ -431,7 +430,7 @@ def get_data_from_dow(raw, stocks, meta, predict_day, feature_list = ['ratio'], 
 
     return features, label     
 
-def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio']):
+def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'],isShift=True):
 
     stocks = clean_stock(stocks,meta, feature_list)  
     current_mask =  np.ones(len(stocks), np.bool)
@@ -458,7 +457,7 @@ def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio']):
     for d in range(5):
         features[d] = {}
         shifted_stock = stocks[mask[d]]
-        shifted_stock = shifted_stock[:-predict_day]
+        if isShift == True: shifted_stock = shifted_stock[:-predict_day]
         
         fe = fe_extr.feature_extractor(meta, shifted_stock)
         

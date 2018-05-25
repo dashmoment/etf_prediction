@@ -11,13 +11,12 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
 import pickle
 
-
-
 from utility import general_utility as gu
 from utility import featureExtractor as f_extr
 from utility import dataProcess as dp
 import model_config as mc
 import model_zoo as mz
+import scoreFunc as scoreF
 
 def load_best_config(configPath):
     
@@ -39,16 +38,11 @@ def get_stack_model(configPath_dict, stock, days):
     return mz.stacking_avg_model(config)
 
 
-#path = '../config/best_config_speicalDate.pkl'
-#c = load_best_config(path)['0050'][1]['model_config']
-
 configPath = {
-                'svc':'../config/best_config_SVM_speicalDate.pkl',
-                'xgb':'../config/best_config_speicalDate.pkl',
-                'rf':'../config/best_config_rf_normal.pkl'
+                'svc':'../config/20180525/best_config_svc_speicalDate.pkl',
+                'xgb':'../config/20180525/best_config_xgb_speicalDate.pkl',
+                'rf':'../config/20180525/best_config_rf_speicalDate.pkl'
             }
-
-#model = get_stack_model(configPath, '0050', 1)
 
 stock_list =  [
                 '0050', '0051',  '0052', '0053', 
@@ -64,6 +58,8 @@ best_config = {}
 predict_days  = list(range(1, 6))   #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 feature_list_comb = [
+                        ['velocity'],
+                        ['ma'],
                         ['ratio'],
                         ['rsi'],
                         ['kdj'],
@@ -73,7 +69,6 @@ feature_list_comb = [
 
                
 config  = mc.model_config('stack').get
-
 srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
 metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
 *_,meta = gu.read_metafile(metaPath)
@@ -89,8 +84,8 @@ for s in stock_list:
         
         best_config[s][predict_day] = {}
         best_accuracy = 0
-        
-        
+        best_test_accuracy = 0
+               
         for consider_lagday in consider_lagdays:
             for feature_list in feature_list_comb:
                 
@@ -98,7 +93,8 @@ for s in stock_list:
                   
                      #***************Get train data******************
                     single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:corr_date], 21, s)
-                    features, label = dp.get_data_from_normal(single_stock, meta, predict_day, feature_list)
+                    single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
+                    features, label = dp.get_data_from_normal(single_stock, meta_v, predict_day, feature_list)
                     
                     feature_concat = []
                     
@@ -117,10 +113,10 @@ for s in stock_list:
                     
                     #***************Get test data******************
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180601'])
-                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta, predict_day, feature_list)
+                    single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
+                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_v, predict_day, feature_list)
                     
-                    feature_concat_test = []
-                    
+                    feature_concat_test = []           
                     for i in range(consider_lagday):
                         for k in  features_test[i]:
                             feature_concat_test.append(features_test[i][k])
@@ -146,27 +142,32 @@ for s in stock_list:
                         sample_weight = {}
                     score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
                                                     n_jobs = 3, 
-                                                    fit_params = sample_weight))
+                                                    fit_params = sample_weight,
+                                                    scoring = scoreF.time_discriminator_score
+                                                    ))
                    
                     model.fit(train_data, train_label)
                     y_xgb_train = model.predict(train_data)
                     y_xgb_test = model.predict(test_data)
-                    print("Train Accuracy of day {}: {}".format(predict_day, accuracy_score(y_xgb_train, train_label)))
-                    print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(y_xgb_test, test_label)))
+#                    print("Train Accuracy of day {} [Stack]: {}".format(predict_day, accuracy_score(train_label, y_xgb_train)))
+#                    print("Validation Accuracy  {} [Stack]: {} ".format(predict_day, accuracy_score(test_label, y_xgb_test)))
+                    
+                    score = accuracy_score(y_xgb_test, test_label)
                     
                     if score > best_accuracy:
                         
                          gsearch2b = GridSearchCV(model,  config['param'], n_jobs=5, cv=3, fit_params = sample_weight)
                          gsearch2b.fit(train_data, train_label)
-                         best_config[s][predict_day] = {'train acc': accuracy_score(y_xgb_train, train_label),
-                                                        'test_acc': accuracy_score(y_xgb_test, test_label),
+                         best_config[s][predict_day] = {'train acc':  accuracy_score(train_label, y_xgb_train),
+                                                        'test_acc': accuracy_score(test_label, y_xgb_test),
                                                         'days': consider_lagday,
                                                         'cross_score':score,
                                                         'features': feature_list,
                                                         'model_config':gsearch2b.best_params_,
                                                         'fintune_score': gsearch2b.best_score_,
                                                         'corrDate':corr_date}
-                         best_accuracy = accuracy_score(y_xgb_test, test_label)
+                         best_accuracy = score
+                         
   
 
 with open('../config/best_config_stack_speicalDate.pkl', 'wb') as handle:

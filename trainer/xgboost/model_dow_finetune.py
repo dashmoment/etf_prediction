@@ -7,15 +7,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import xgboost as xgb
 from sklearn.grid_search import GridSearchCV
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import make_scorer, classification_report
 
 from utility import general_utility as gu
 from utility import featureExtractor as f_extr
 from utility import dataProcess as dp
 import model_config as mc
-
-
+import scoreFunc as scoreF
 
 stock_list =  [
                 '0050', '0051',  '0052', '0053', 
@@ -29,9 +29,9 @@ stock_list = ['0050']
 
 best_config = {}
 date_range = [
-#              ['20130601','20150601'],
-#              ['20150101','20170601'],
-#              ['20160101','20180101'],
+              ['20130601','20150601'],
+              ['20150101','20170601'],
+              ['20160101','20180101'],
               ['20130101','20180401']
              ]
               
@@ -49,10 +49,10 @@ feature_list_comb = [
                 
 config  = mc.model_config('xgb').get
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
-metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
-#srcPath = '../../Data/all_feature_data_Nm_1_MinMax_94.pkl'
-#metaPath = '../../Data/all_meta_data_Nm_1_MinMax_94.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
+#metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
+srcPath = '../../Data/all_feature_data_Nm_1_MinMax_94.pkl'
+metaPath = '../../Data/all_meta_data_Nm_1_MinMax_94.pkl'
 *_,meta = gu.read_metafile(metaPath)
 
 tv_gen = dp.train_validation_generaotr()
@@ -70,8 +70,6 @@ for s in stock_list:
                 for feature_list in feature_list_comb:
                       
                     #***************Get train data******************
-    
-                    
                     single_stock = tv_gen._selectData2array(f, [s], period)
                     single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
                     features, label = dp.get_data_from_dow(f , single_stock, meta, predict_day, feature_list)
@@ -82,7 +80,6 @@ for s in stock_list:
                     for i in range(consider_lagday):
                         for k in  features[dow[i]]:
                             feature_concat.append( features[dow[i]][k])          
-                    
                     data_feature = np.concatenate(feature_concat, axis=1)
                    
                     train_val_set_days = {'train': data_feature,
@@ -105,8 +102,7 @@ for s in stock_list:
                             feature_concat_test.append(features_test[dow[i]][k])
                     
                     
-                    data_feature_test = np.concatenate(feature_concat_test, axis=1)
-                   
+                    data_feature_test = np.concatenate(feature_concat_test, axis=1)                   
                     test_val_set_days = {'test': data_feature_test,
                                           'test_label': label_test}
                     
@@ -123,7 +119,10 @@ for s in stock_list:
                         
                     else:
                         sample_weight = {}
-                    score = np.mean(cross_val_score(model, train_data, train_label, cv=3, 
+                        
+                    
+                    score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
+                                                    n_jobs = 3, scoring = scoreF.time_discriminator_score,
                                                     fit_params = sample_weight
                                                     ))
                             
@@ -135,7 +134,8 @@ for s in stock_list:
                     
                     if score > best_accuracy:
                         
-                         gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3, fit_params = sample_weight)
+                         gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3,
+                                                  scoring= scoreF.time_discriminator_score, fit_params = sample_weight)
                          gsearch2b.fit(train_data, train_label)
                          best_config[s][predict_day] = {'train acc': accuracy_score(y_xgb_train, train_label),
                                                         'test_acc': accuracy_score(y_xgb_test, test_label),

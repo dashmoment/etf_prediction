@@ -90,7 +90,7 @@ srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.p
 tv_gen = dp.train_validation_generaotr()
 *_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl')
 f = tv_gen._load_data(srcPath)
-mConfig =  open('/home/ubuntu/shared/workspace/etf_prediction/trainer/config/best_config_xgb_dow_all_00713.pkl', 'rb')
+mConfig =  open('/home/ubuntu/shared/workspace/etf_prediction/trainer/config/best_config_xgb_dow_all.pkl', 'rb')
 best_config = pickle.load(mConfig)
 
 predict_ud = {}
@@ -107,22 +107,22 @@ for s in stock_list:
          
          single_stock_test = tv_gen._selectData2array(f, [s], ['20180401', '20180620'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v)
+         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v, False)
          
          model = model_dict('xgb', model_config).get  
          
          model.fit(train_data, train_label)
             
          #********For submission***********
-#         test_data = np.reshape(test_data[-1,:], (1,-1))
-#         ud = gu.map_ud(model.predict(test_data)[0])
-#         predict_ud[s].append(ud)
+         test_data = np.reshape(test_data[-1,:], (1,-1))
+         ud = gu.map_ud(model.predict(test_data)[0])
+         predict_ud[s].append(ud)
          
          #********For test************
-         p = model.predict(test_data)   
-         print(p)
-         print(test_label)
-         print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score( test_label, p)))
+#         p = model.predict(test_data)   
+#         print(p)
+#         print(test_label)
+#         print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score( test_label, p)))
                     
          
          

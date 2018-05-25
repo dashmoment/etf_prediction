@@ -165,7 +165,7 @@ for s in stock_list:
                     #score = accuracy_score(y_xgb_test, test_label)
                     score = normal_score
                     
-                    if score > best_accuracy:                  
+                    if score >= best_accuracy:                  
                          gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3,
                                                   #scoring= scoreF.time_discriminator_score, 
                                                   fit_params = sample_weight)
@@ -173,7 +173,7 @@ for s in stock_list:
                          fintue_predict = gsearch2b.predict(test_data)
                          fintune_testscore = accuracy_score(test_label, fintue_predict)
                         
-                         if gsearch2b.best_score_ > score:
+                         if fintune_testscore >=  accuracy_score(y_xgb_test, test_label):
                          
                              best_config[s][predict_day] = {
                                                             'train acc': accuracy_score(train_label, y_xgb_train),

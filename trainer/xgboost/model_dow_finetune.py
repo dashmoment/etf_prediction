@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../../')
-
+    
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,9 +29,9 @@ stock_list = ['0050']
 
 best_config = {}
 date_range = [
-              ['20130601','20150601'],
-              ['20150101','20170601'],
-              ['20160101','20180101'],
+              #['20130601','20150601'],
+              #['20150101','20170601'],
+              #['20160101','20180101'],
               ['20130101','20180401']
              ]
               
@@ -39,7 +39,7 @@ predict_days  = list(range(5))  #The dow wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 feature_list_comb = [
                         #['velocity'],
-                        ['ma'],
+                        #['ma'],
                         ['ratio'],
                         ['rsi'],
                         ['kdj'],

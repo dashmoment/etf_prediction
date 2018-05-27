@@ -52,7 +52,7 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-stock_list = ['0050']
+stock_list = ['00690']
 
 best_config = {}            
 predict_days  = list(range(1, 6))   #The future # day wish model to predict
@@ -142,8 +142,8 @@ for s in stock_list:
                         sample_weight = {}
                     score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
                                                     n_jobs = 3, 
-                                                    fit_params = sample_weight,
-                                                    scoring = scoreF.time_discriminator_score
+                                                    #fit_params = sample_weight,
+                                                    #scoring = scoreF.time_discriminator_score
                                                     ))
                    
                     model.fit(train_data, train_label)
@@ -152,11 +152,14 @@ for s in stock_list:
 #                    print("Train Accuracy of day {} [Stack]: {}".format(predict_day, accuracy_score(train_label, y_xgb_train)))
 #                    print("Validation Accuracy  {} [Stack]: {} ".format(predict_day, accuracy_score(test_label, y_xgb_test)))
                     
+                    
                     score = accuracy_score(y_xgb_test, test_label)
                     
                     if score > best_accuracy:
                         
-                         gsearch2b = GridSearchCV(model,  config['param'], n_jobs=5, cv=3, fit_params = sample_weight)
+                         gsearch2b = GridSearchCV(model,  config['param'], n_jobs=5, cv=3, 
+                                                  #fit_params = sample_weight
+                                                  )
                          gsearch2b.fit(train_data, train_label)
                          best_config[s][predict_day] = {'train acc':  accuracy_score(train_label, y_xgb_train),
                                                         'test_acc': accuracy_score(test_label, y_xgb_test),
@@ -170,7 +173,7 @@ for s in stock_list:
                          
   
 
-with open('../config/best_config_stack_speicalDate.pkl', 'wb') as handle:
+with open('../config/best_config_stack_speicalDate_nwcscore.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

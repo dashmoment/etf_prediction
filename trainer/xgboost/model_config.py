@@ -30,7 +30,10 @@ class model_config:
                 'model': xgb.XGBClassifier( max_depth=3, learning_rate=0.05 ,n_estimators=500, silent=True, 
                                             objective='multi:softmax', num_class=3
                                            ),
-                'param': { 
+                'param': {
+                              #'learning_rate': np.arange(0.1, 0.15, 0.05),
+                              #'max_depth': np.arange(3, 4, 3),
+                              #'min_child_weight': np.arange(1,2,3)
                               'learning_rate': np.arange(0.01, 0.15, 0.05),
                               'max_depth': np.arange(3, 10, 3),
                               #'subsample':np.arange(0.5, 1, 0.2),

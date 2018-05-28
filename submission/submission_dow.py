@@ -58,17 +58,17 @@ class model_dict:
                         kernel=model_config['model_config']['kernel']
                       )
 
-#stock_list =  [
-#                '0050', '0051',  '0052', '0053', 
-#                '0054', '0055', '0056', '0057', 
-#                '0058', '0059', '006201', '006203', 
-#                '006204', '006208','00690', '00692',  
-#                '00701', '00713'
-#              ]
+stock_list =  [
+                '0050', '0051',  '0052', '0053', 
+                '0054', '0055', '0056', '0057', 
+                '0058', '0059', '006201', '006203', 
+                '006204', '006208','00690', '00692',  
+                '00701', '00713'
+              ]
 
 
 
-stock_list = ['0050']
+#stock_list = ['0050']
 predict_days  = list(range(5))
 dow = {0:'mon', 1:'tue', 2:'wed', 3:'thu', 4:'fri'}
 def get_data_label_pair(single_stock, model_config, meta, isShift=True):
@@ -86,11 +86,14 @@ def get_data_label_pair(single_stock, model_config, meta, isShift=True):
     
     return data, label
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
+srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl' 
+metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
 tv_gen = dp.train_validation_generaotr()
-*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl')
+*_,meta = gu.read_metafile(metaPath)
 f = tv_gen._load_data(srcPath)
-mConfig =  open('/home/ubuntu/shared/workspace/etf_prediction/trainer/config/best_config_xgb_dow_all.pkl', 'rb')
+mConfig =open('/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_dow_all.pkl', 'rb')
+#mConfig =  open('/home/ubuntu/shared/workspace/etf_prediction/trainer/config/best_config_xgb_dow_all.pkl', 'rb')
 best_config = pickle.load(mConfig)
 
 predict_ud = {}
@@ -107,7 +110,7 @@ for s in stock_list:
          
          single_stock_test = tv_gen._selectData2array(f, [s], ['20180401', '20180620'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v, False)
+         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v,False)
          
          model = model_dict('xgb', model_config).get  
          
@@ -130,9 +133,9 @@ for s in stock_list:
     
         
          
-#import pickle
-#with open('../submission/predict_ud_dow.pkl', 'wb') as handle:
-#    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
+import pickle
+with open('../submission/20180525/predict_ud_dow.pkl', 'wb') as handle:
+    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
          
          

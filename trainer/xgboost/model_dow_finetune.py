@@ -26,15 +26,16 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-stock_list = ['0050']
+#stock_list = ['0050']
 date_range_normal = [
                         ['20130101','20150601'],
                         ['20150101','20170101'],
-                        ['20160101','20180401'],
-                        ['20130101','20180401']
+                        ['20160101','20180610'],
+                        ['20130101','20180610']
                     ]
 
-date_range_special = [['20130101','20180401']]
+
+date_range_special = [['20130101','20180610']]
 
 feature_list_comb_noraml = [
                                 ['velocity'],
@@ -63,10 +64,10 @@ model_name = 'xgb'
 config  = mc.model_config(model_name).get
 best_config = {}
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
-metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
-#srcPath = '../../Data/all_feature_data_Nm_1_MinMax_94.pkl'
-#metaPath = '../../Data/all_meta_data_Nm_1_MinMax_94.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
+#metaPath = '/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl'
+srcPath = '../../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath = '../../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
 *_,meta = gu.read_metafile(metaPath)
 
 tv_gen = dp.train_validation_generaotr()
@@ -152,49 +153,70 @@ for s in stock_list:
                     
                     normal_score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
                                                     n_jobs = 5, 
+                                                    #scoring= scoreF.time_discriminator_score,
                                                     fit_params = sample_weight
                                                     ))
+                     
                         
                     model.fit(train_data, train_label)
                     y_xgb_train = model.predict(train_data)
                     y_xgb_test = model.predict(test_data)
-#                    print("Train Accuracy of day {} [DOW][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
-#                    print("Validation Accuracy  {} [DOW][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
+                    print("Train Accuracy of day {} [DOW][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
+                    print("Validation Accuracy  {} [DOW][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
                     
                     
-                    #score = accuracy_score(y_xgb_test, test_label)
+                    #test_score = accuracy_score(y_xgb_test, test_label)
                     score = normal_score
                     
-                    if score >= best_accuracy:                  
+                    if score >= best_accuracy:   
+                        
+                         best_accuracy = normal_score
+                         #best_test_accuracy = test_score
+                         
                          gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3,
                                                   #scoring= scoreF.time_discriminator_score, 
                                                   fit_params = sample_weight)
                          gsearch2b.fit(train_data, train_label)
                          fintue_predict = gsearch2b.predict(test_data)
                          fintune_testscore = accuracy_score(test_label, fintue_predict)
-                        
-                         if fintune_testscore >=  accuracy_score(y_xgb_test, test_label):
-                         
+                    
+                         if gsearch2b.best_score_ > best_accuracy:
+                             best_accuracy = gsearch2b.best_score_
                              best_config[s][predict_day] = {
                                                             'train acc': accuracy_score(train_label, y_xgb_train),
                                                             'test_acc': accuracy_score(test_label, y_xgb_test),
                                                             'days': consider_lagday,
-                                                            #'cross_score':normal_score,
+                                                            'cross_score':normal_score,
                                                             'features': feature_list,
                                                             'period':period,
                                                             'model_config':gsearch2b.best_params_,
                                                             'fintune_score': gsearch2b.best_score_,
-                                                            'fintune_testscore': accuracy_score(test_label, fintue_predict)
+                                                            'fintune_testscore': fintune_testscore
                                                             }
-                             best_accuracy = gsearch2b.best_score_
-                         
                          else:
-                             best_accuracy = score
+                            
+                            best_config[s][predict_day] = {
+                                                            'train acc': accuracy_score(train_label, y_xgb_train),
+                                                            'test_acc': accuracy_score(test_label, y_xgb_test),
+                                                            'days': consider_lagday,
+                                                            'cross_score':normal_score,
+                                                            'features': feature_list,
+                                                            'period':period,
+                                                            'model_config':model.get_params(),
+                                                            'fintune_score': gsearch2b.best_score_,
+                                                            'fintune_testscore': fintune_testscore
+                                                            }
+                            
+                         #best_accuracy = gsearch2b.best_score_
+                             #best_test_accuracy = fintune_testscore
+                         
+                         #else:
+                         #    best_accuracy = score
                              
    
     
 import pickle
-with open('../config/best_config_'+ model_name +'_dow_all.pkl', 'wb') as handle:
+with open('../config/best_config_'+ model_name +'_dow_all_normal.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

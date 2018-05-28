@@ -8,13 +8,11 @@ import pandas as pd
 
 
 tv_gen = dp.train_validation_generaotr()
-*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94_0050.pkl')
-f = tv_gen._load_data('/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94_0050.pkl')
-data_path = '/home/ubuntu/dataset/etf_prediction/raw_data/tetfp.csv'
+#data_path = '/home/ubuntu/dataset/etf_prediction/0525/tetfp.csv'
 
 #*_,meta = gu.read_metafile('/home/dashmoment/workspace/etf_prediction/Data/all_meta_data_Nm_1_MinMax_94.pkl')
 #f = tv_gen._load_data('/home/dashmoment/workspace/etf_prediction/Data/all_feature_data_Nm_1_MinMax_94.pkl')
-#data_path = '/home/dashmoment/workspace/etf_prediction/Data/raw_data/20180518/tetfp.csv'
+data_path = '/home/dashmoment/workspace/etf_prediction/Data/0525/tetfp.csv'
 
 def change_raw_columns_name(inputfile:pd.DataFrame):
     inputfile.columns = ["ID", "Date", "name", "open_price", "max", "min", "close_price", "trade"]
@@ -82,5 +80,5 @@ for i in range(len(tasharep_ID)):
     
 
 import pickle
-with open('../submission/predict_price_mean.pkl', 'wb') as handle:
+with open('./20180525/predict_price_mean.pkl', 'wb') as handle:
     pickle.dump(price_list, handle, protocol=pickle.HIGHEST_PROTOCOL)   

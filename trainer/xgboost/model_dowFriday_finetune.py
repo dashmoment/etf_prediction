@@ -113,13 +113,11 @@ for s in stock_list:
                     progress.update(1)
                       
                     #***************Get train data******************
-
-
+                    
                     single_stock = tv_gen._selectData2array(f, [s], period)
                     single_stock, meta_v = f_extr.create_velocity(single_stock, meta)                    
                     raw_train = get_period_raw_data(f, period)
-
-                    features, label = dp.get_data_from_dow(raw_train , single_stock, meta_v, predict_day, feature_list)
+                    features, label = dp.get_data_from_dow_friday(raw_train , single_stock, meta_v, predict_day, feature_list)
                     
                     feature_concat = []
                     dow = {0:'mon', 1:'tue', 2:'wed', 3:'thu', 4:'fri'}
@@ -143,7 +141,7 @@ for s in stock_list:
                     single_stock_test = tv_gen._selectData2array(f, [s], test_period)
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
                     raw_test = get_period_raw_data(f, test_period)
-                    features_test, label_test = dp.get_data_from_dow(raw_test, single_stock_test, meta_v, predict_day, feature_list)
+                    features_test, label_test = dp.get_data_from_dow_friday(raw_test, single_stock_test, meta_v, predict_day, feature_list)
                     
                     feature_concat_test = []                   
                     for i in range(consider_lagday):
@@ -180,8 +178,8 @@ for s in stock_list:
                     model.fit(train_data, train_label)
                     y_xgb_train = model.predict(train_data)
                     y_xgb_test = model.predict(test_data)
-                    print("Train Accuracy of day {} [DOW][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
-                    print("Validation Accuracy  {} [DOW][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
+                    print("Train Accuracy of day {} [DOW_F][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
+                    print("Validation Accuracy  {} [DOW_F][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
                     
                     
                     #test_score = accuracy_score(y_xgb_test, test_label)
@@ -227,16 +225,11 @@ for s in stock_list:
                                                             'fintune_testscore': fintune_testscore
                                                             }
                             
-                         #best_accuracy = gsearch2b.best_score_
-                             #best_test_accuracy = fintune_testscore
-                         
-                         #else:
-                         #    best_accuracy = score
                              
    
     
 #import pickle
-#with open('../config/best_config_'+ model_name +'_dow_all_normal.pkl', 'wb') as handle:
+#with open('../config/best_config_'+ model_name +'_dow_test.pkl', 'wb') as handle:
 #    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

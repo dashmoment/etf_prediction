@@ -17,6 +17,18 @@ from utility import dataProcess as dp
 import model_config as mc
 import scoreFunc as scoreF
 
+def reduce_label(label):
+    
+    label_reduce = []
+    
+    for i in range(len(label)):
+        if label[i] == 0 or label[i] == 1: label_reduce.append(0)
+        elif label[i] == 2:
+            label_reduce.append(1)
+            
+    return np.array(label_reduce)
+            
+
 stock_list =  [
                 '0050', '0051',  '0052', '0053', 
                 '0054', '0055', '0056', '0057', 
@@ -57,7 +69,7 @@ predict_days  = list(range(1, 6))   #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 
 
-model_name = 'xgb'           
+model_name = 'xgb_2cls'           
 config  = mc.model_config(model_name).get
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
@@ -101,6 +113,9 @@ for s in stock_list:
                     single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
                     features, label = dp.get_data_from_normal(single_stock, meta_v, predict_day, feature_list)
                     
+                    label_o  = label
+                    label = reduce_label(label)
+                    
                     feature_concat = []
                     
                     for i in range(consider_lagday):
@@ -120,6 +135,8 @@ for s in stock_list:
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180601'])
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
                     features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_v, predict_day, feature_list)
+                    
+                    label_test = reduce_label(label_test)
                     
                     feature_concat_test = []
                     
@@ -157,8 +174,8 @@ for s in stock_list:
                     model.fit(train_data, train_label)
                     y_xgb_train = model.predict(train_data)
                     y_xgb_test = model.predict(test_data)
-                    print("Train Accuracy of day {} [SP][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
-                    print("Validation Accuracy  {} [SP][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
+                    print("Train Accuracy of day {} [SP_cls2][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
+                    print("Validation Accuracy  {} [SP_cls2][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
                     
                     score = accuracy_score(y_xgb_test, test_label)
                     #score = normal_score

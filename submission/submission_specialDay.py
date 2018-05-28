@@ -72,18 +72,21 @@ def get_data_label_pair(single_stock, model_config, meta, isShift=True):
     
     return data, label
 
-#srcPath = '/home/ubuntu/dataset/etf_prediction/0518/all_feature_data_Nm_1_MinMax_120.pkl'
-srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
-corrDate_path = '../Data/0525/xcorr_date_data.pkl'
-mConfig_path = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+corrDate_path = '/home/ubuntu/dataset/etf_prediction/0525/xcorr_date_data.pkl'
+mConfig_path = '../trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+#srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+#corrDate_path = '../Data/0525/xcorr_date_data.pkl'
+#mConfig_path = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
 
 tv_gen = dp.train_validation_generaotr()
 *_,meta = gu.read_metafile(metaPath)
 f = tv_gen._load_data(srcPath)
 mConfig =  open(mConfig_path, 'rb')
 corrDate = gu.read_datefile(corrDate_path)
-corrDate_range = list(range(3,len(corrDate['0050'])+1))  
+#corrDate_range = list(range(3,len(corrDate['0050'])+1))  
 
 best_config = pickle.load(mConfig)
 predict_ud = {}
@@ -156,9 +159,9 @@ for s in stock_list:
     
         
          
-import pickle
-with open('./20180525/predict_ud_xgb_speicalDate_nsw_npw_cscore.pkl', 'wb') as handle:
-    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
+#import pickle
+#with open('./20180525/predict_ud_xgb_speicalDate_nsw_npw_cscore.pkl', 'wb') as handle:
+#    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
          
          

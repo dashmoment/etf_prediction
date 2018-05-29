@@ -37,7 +37,7 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-#stock_list = ['0050']
+stock_list = ['00690']
 date_range_normal = [
                         #['20130101','20150601'],
                         #['20150101','20170101'],
@@ -46,7 +46,7 @@ date_range_normal = [
                     ]
 
 
-date_range_special = [['20130101','20180610']]
+date_range_special = [['20130101','20180414']]
 
 feature_list_comb_noraml = [
                                 ['velocity'],

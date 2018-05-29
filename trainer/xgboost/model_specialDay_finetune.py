@@ -25,30 +25,36 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-#stock_list = ['00690']
+stock_list = ['00690']
 feature_list_comb_noraml = [
-                                ['velocity'],
                                 ['ma'],
                                 ['ratio'],
-                                ['rsi'],
-                                ['kdj'],
                                 ['macd'],
-                                ['ud'],
-                                #['velocity', 'ma'],
-                                #['velocity', 'ratio'],
-                                #['velocity', 'macd'],
-                                #['velocity', 'kdj'],
+                                ['kdj'],
+                                ['rsi'],
+                                ['velocity'],
+                                ['ma', 'cont'],
+                                ['velocity',  'cont'],               
+                                ['ratio',  'cont'],
+                                ['rsi',  'cont'],
+                                ['kdj',  'cont'],
+                                ['macd',  'cont'],
+                                ['ud',  'cont'],
+                               
                             ]
 
 feature_list_comb_special = [                               
                                 ['ratio'],
-                                ['rsi'],
-                                ['kdj'],
                                 ['macd'],
-                                ['ud'],
-                                #['ratio', 'ma'],
-                                #['ratio', 'macd'],
-                                #['ratio', 'kdj'],
+                                ['kdj'],
+                                ['rsi'],
+                                ['velocity'],
+                                ['velocity',  'cont'],               
+                                ['ratio',  'cont'],
+                                ['rsi',  'cont'],
+                                ['kdj',  'cont'],
+                                ['macd',  'cont'],
+                                ['ud',  'cont'],
                                 
                             ]
 
@@ -99,7 +105,8 @@ for s in stock_list:
                     #***************Get train data******************
                     single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:corr_date], 21, s)      
                     single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
-                    features, label = dp.get_data_from_normal(single_stock, meta_v, predict_day, feature_list)
+                    single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
+                    features, label = dp.get_data_from_normal(single_stock, meta_ud, predict_day, feature_list)
                     
                     feature_concat = []
                     
@@ -119,7 +126,8 @@ for s in stock_list:
                     #***************Get test data******************
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180601'])
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_v, predict_day, feature_list)
+                    single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
+                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_ud, predict_day, feature_list)
                     
                     feature_concat_test = []
                     
@@ -202,7 +210,7 @@ for s in stock_list:
                                                                    }
   
 import pickle
-with open('../config/best_config_'+ model_name +'_speicalDate_npw_mf_cscore.pkl', 'wb') as handle:
+with open('../config/best_config_'+ model_name +'_speicalDate_npw_mfcont_cscore.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

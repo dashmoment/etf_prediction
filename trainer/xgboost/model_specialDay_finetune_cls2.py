@@ -37,30 +37,30 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-#stock_list = ['00690']
+stock_list = ['00690']
 feature_list_comb_noraml = [
-                                ['velocity'],
-                                ['ma'],
-                                ['ratio'],
-                                ['rsi'],
-                                ['kdj'],
-                                ['macd'],
-                                ['ud'],
-                                #['velocity', 'ma'],
-                                #['velocity', 'ratio'],
-                                #['velocity', 'macd'],
-                                #['velocity', 'kdj'],
+#                                ['velocity'],
+#                                ['ma'],
+#                                ['ratio'],
+#                                ['rsi'],
+#                                ['kdj'],
+#                                ['macd'],
+#                                ['ud'],
+                                ['velocity', 'macd'],
+                                ['velocity', 'ratio'],
+                                ['velocity', 'macd'],
+                                ['velocity', 'kdj'],
                             ]
 
 feature_list_comb_special = [                               
-                                ['ratio'],
-                                ['rsi'],
-                                ['kdj'],
-                                ['macd'],
-                                ['ud'],
-                                #['ratio', 'ma'],
-                                #['ratio', 'macd'],
-                                #['ratio', 'kdj'],
+#                                ['ratio'],
+#                                ['rsi'],
+#                                ['kdj'],
+#                                ['macd'],
+#                                ['ud'],
+                                ['ratio', 'macd'],
+                                ['ratio', 'macd'],
+                                ['ratio', 'kdj'],
                                 
                             ]
 
@@ -219,7 +219,7 @@ for s in stock_list:
                                                                    }
   
 import pickle
-with open('../config/best_config_'+ model_name +'_speicalDate_npw_mf_cscore.pkl', 'wb') as handle:
+with open('../config/best_config_'+ model_name +'_speicalDate_npw_2cls_cscore.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

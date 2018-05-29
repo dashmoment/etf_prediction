@@ -378,7 +378,7 @@ def clean_stock(single_stock, meta, feature_list):
         feature_mask += tmp_mask
 
     for i in range(len(single_stock)):
-        if not np.isnan(single_stock[i,feature_mask]).any():
+        if not np.isnan(single_stock[i,list(set(feature_mask))]).any():
             tmpStock.append(single_stock[i])
     single_stock = np.array(tmpStock)
 

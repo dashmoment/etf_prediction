@@ -62,7 +62,7 @@ class train_validation_generaotr:
 
         data_by_dates = []
         for d in dates:
-            data_by_dates.append(get_data_by_date(raw, d, 21))
+            data_by_dates.append(get_data_by_date(raw, d, period))
             
         data_by_dates = pd.concat(data_by_dates, axis=1)
         stock = data_by_dates.loc[stock_IDs]

@@ -25,7 +25,7 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-stock_list = ['00690']
+#stock_list = ['00690']
 feature_list_comb_noraml = [
                                 ['ma'],
                                 ['ratio'],
@@ -63,7 +63,7 @@ predict_days  = list(range(1, 6))   #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 
 
-model_name = 'xgb'           
+model_name = 'rf'           
 config  = mc.model_config(model_name).get
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'

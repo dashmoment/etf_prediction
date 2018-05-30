@@ -75,7 +75,7 @@ def get_data_label_pair(single_stock, model_config, meta, isShift=True):
 srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
 metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
 corrDate_path = '/home/ubuntu/dataset/etf_prediction/0525/xcorr_date_data.pkl'
-mConfig_path = '../trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+mConfig_path = '../trainer/config/best_config_xgb_speicalDate_npw_mfcont_cscore.pkl'
 #srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
 #metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
 #corrDate_path = '../Data/0525/xcorr_date_data.pkl'
@@ -132,17 +132,19 @@ for s in stock_list:
          
          single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:model_config['corrDate']], 21, s)
          single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
-         train_data, train_label = get_data_label_pair(single_stock, model_config, meta_v)
+         single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
+         train_data, train_label = get_data_label_pair(single_stock, model_config, meta_ud)
          
-         single_stock_test = tv_gen._selectData2array(f, [s], ['20180401', '20180620'])
+         single_stock_test = tv_gen._selectData2array(f, [s], ['20180414', '20180620'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v, False)
+         single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
+         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_ud, False)
          
          model = model_dict('xgb', model_config).get      
          #model = get_stack_model( s, predict_day)    
          model.fit(train_data, train_label)
             
-         #********For submission***********
+#         #********For submission***********
          test_data = np.reshape(test_data[-1,:], (1,-1))
          ud = gu.map_ud(model.predict(test_data)[0])
          predict_ud[s].append(ud)

@@ -7,7 +7,7 @@ import pickle
     
 
 xgb_config = '../config/20180525/best_config_xgb_speicalDate.pkl'
-rf_config = '../config/20180525/best_config_rf_speicalDate.pkl'
+rf_config = '../config/20180531/best_config_rf_speicalDate_npw_mfcont_cscore.pkl'
 svc_config = '../config/20180525/best_config_svc_speicalDate.pkl'
 stack_config = '../config/20180525/best_config_stack_speicalDate.pkl'
 

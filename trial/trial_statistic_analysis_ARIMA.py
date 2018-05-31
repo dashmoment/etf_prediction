@@ -10,7 +10,7 @@ from tqdm import tqdm
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
-from statsmodels.tsa.stattools import acf, pacf
+from statsmodels.tsa.stattools import acf, pacf, adfuller
 import statsmodels.api as sm
 from statsmodels.graphics.api import qqplot
 
@@ -37,6 +37,9 @@ tv_gen = dp.train_validation_generaotr()
 f = tv_gen._load_data(srcPath)
 
 single_stock = tv_gen._selectData2array(f,stock_list , None)      
+
+#***********dist. plot of  close price******************
+sns.distplot(single_stock[:,3])
 
 #***********Plot close price******************
 fig = plt.figure()
@@ -71,6 +74,22 @@ plt.plot(close_price_df.diff(2))
 
 fig = plt.figure(figsize=(12,8))
 ax1 = fig.add_subplot(211)
-sm.graphics.tsa.plot_acf(close_price_df.diff(1)[-200:],lags=50, ax=ax1)
+sm.graphics.tsa.plot_acf(close_price_df.diff(1)[-200:],lags=100, ax=ax1)
 ax2 = fig.add_subplot(212)
-sm.graphics.tsa.plot_pacf(close_price_df.diff(1)[-200:],lags=50, ax=ax2)
+sm.graphics.tsa.plot_pacf(close_price_df.diff(1)[-200:],lags=100, ax=ax2)
+
+arma_mod20 = sm.tsa.ARIMA(close_price_df.diff(1)[-200:],(1,1,0)).fit()
+print(arma_mod20.aic,arma_mod20.bic,arma_mod20.hqic)
+predict = arma_mod20.predict()
+#arma_mod20 = sm.tsa.ARMA(close_price_df.diff(1)[-200:],(20,2)).fit()
+#print(arma_mod20.aic,arma_mod20.bic,arma_mod20.hqic)
+#predict = arma_mod20.predict(-200)
+#fig = plt.figure()
+#fig.suptitle('True and predict of 0050')
+#plt.plot(predict)
+#plt.plot(close_price_df.diff(1)[-200:])
+#label = close_price_df.diff(1)[-200:]
+#acc = np.sum([1 for i in label*predict if i > 0])/len(label)
+
+adf = adfuller(close_price_df.diff(1)[-200:])
+    

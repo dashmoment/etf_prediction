@@ -31,8 +31,7 @@ class model_config:
                                             objective='multi:softmax', num_class=3
                                            ),
                 'param': {
-                              #'learning_rate': np.arange(0.1, 0.15, 0.05),
-                              #'max_depth': np.arange(3, 4, 3),
+                              'max_depth': np.arange(3, 4, 3),
                               #'min_child_weight': np.arange(1,2,3)
                               'learning_rate': np.arange(0.01, 0.15, 0.05),
                               'max_depth': np.arange(3, 10, 3),
@@ -52,14 +51,13 @@ class model_config:
                                             objective='multi:softmax', num_class=2
                                            ),
                 'param': {
-                              #'learning_rate': np.arange(0.1, 0.15, 0.05),
-                              #'max_depth': np.arange(3, 4, 3),
+                              'max_depth': np.arange(3, 4, 3),
                               #'min_child_weight': np.arange(1,2,3)
                               'learning_rate': np.arange(0.01, 0.15, 0.05),
                               'max_depth': np.arange(3, 10, 3),
                               #'subsample':np.arange(0.5, 1, 0.2),
                               'min_child_weight': np.arange(1,6,3),
-                              #'n_estimators': np.arange(400,600,100)
+                              'n_estimators': np.arange(400,600,100)
                          },
                  'fit_param':True                        
               }

@@ -78,9 +78,9 @@ sm.graphics.tsa.plot_acf(close_price_df.diff(1)[-200:],lags=100, ax=ax1)
 ax2 = fig.add_subplot(212)
 sm.graphics.tsa.plot_pacf(close_price_df.diff(1)[-200:],lags=100, ax=ax2)
 
-arma_mod20 = sm.tsa.ARIMA(close_price_df.diff(1)[-200:],(1,1,0)).fit()
+arma_mod20 = sm.tsa.ARIMA(close_price_df[-200:],(1,1,1)).fit()
 print(arma_mod20.aic,arma_mod20.bic,arma_mod20.hqic)
-predict = arma_mod20.predict()
+predict = arma_mod20.predict(1, 199)
 #arma_mod20 = sm.tsa.ARMA(close_price_df.diff(1)[-200:],(20,2)).fit()
 #print(arma_mod20.aic,arma_mod20.bic,arma_mod20.hqic)
 #predict = arma_mod20.predict(-200)
@@ -88,8 +88,8 @@ predict = arma_mod20.predict()
 #fig.suptitle('True and predict of 0050')
 #plt.plot(predict)
 #plt.plot(close_price_df.diff(1)[-200:])
-#label = close_price_df.diff(1)[-200:]
-#acc = np.sum([1 for i in label*predict if i > 0])/len(label)
+label = close_price_df.diff(1)[-200:][1:]
+acc = np.sum([1 for i in label*predict if i > 0])/len(label)
 
-adf = adfuller(close_price_df.diff(1)[-200:])
+adf = adfuller(close_price_df.diff(1)[0:10])
     

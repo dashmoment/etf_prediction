@@ -22,8 +22,8 @@ def reduce_label(label):
     label_reduce = []
     
     for i in range(len(label)):
-        if label[i] == 0 or label[i] == 1: label_reduce.append(0)
-        elif label[i] == 2:
+        if label[i] == 0: label_reduce.append(0)
+        else:
             label_reduce.append(1)
             
     return np.array(label_reduce)
@@ -37,7 +37,7 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-#stock_list = ['00690']
+stock_list = ['0050']
 feature_list_comb_noraml = [
                                 ['ma'],
                                 ['ratio'],
@@ -45,13 +45,13 @@ feature_list_comb_noraml = [
                                 ['kdj'],
                                 ['rsi'],
                                 ['velocity'],
-                                ['ma', 'cont'],
+                                #['ma', 'cont'],
                                 ['velocity',  'cont'],               
                                 ['ratio',  'cont'],
                                 ['rsi',  'cont'],
                                 ['kdj',  'cont'],
                                 ['macd',  'cont'],
-                                ['ud',  'cont'],
+                                #['ud',  'cont'],
                             ]
 
 feature_list_comb_special = [                               
@@ -65,7 +65,7 @@ feature_list_comb_special = [
                                 ['rsi',  'cont'],
                                 ['kdj',  'cont'],
                                 ['macd',  'cont'],
-                                ['ud',  'cont'],
+                                #['ud',  'cont'],
                                 
                             ]
 
@@ -77,14 +77,15 @@ consider_lagdays = list(range(1,6)) #Contain # lagday information for a training
 model_name = 'xgb_2cls'           
 config  = mc.model_config(model_name).get
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
-corrDate_path = '/home/ubuntu/dataset/etf_prediction/0525/xcorr_date_data.pkl'
-#srcPath = '../../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-#metaPath = '../../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+corrDate_path = '/home/ubuntu/dataset/etf_prediction/0601/xcorr_date_data.pkl'
+#srcPath = '../../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath = '../../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+#corrDate_path = '../../Data/0601/xcorr_date_data.pkl'
 *_,meta = gu.read_metafile(metaPath)
 corrDate = gu.read_datefile(corrDate_path)
-corrDate_range = list(range(3,len(corrDate['0050'])+1))  
+corrDate_range = list(range(3,len(corrDate['0050']),3))  
 tv_gen = dp.train_validation_generaotr()
 f = tv_gen._load_data(srcPath)
 
@@ -95,6 +96,9 @@ progress.set_description("[SP][{}]".format(model_name))
 for s in stock_list:
     best_config[s] = {}
     progress.set_description("[SP][{}][{}]".format(model_name, s))
+    
+    if s == '0050': _stock_list = ['0050', '2330']
+    else: _stock_list = [s] 
     
     for predict_day in predict_days:
         
@@ -114,32 +118,61 @@ for s in stock_list:
                     progress.update(1)
                   
                     #***************Get train data******************
-                    single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:corr_date], 21, s)      
-                    single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
-                    single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
-                    features, label = dp.get_data_from_normal(single_stock, meta_ud, predict_day, feature_list)
-                    
-                    label = reduce_label(label)
-                    
-                    feature_concat = []
-                    
-                    for i in range(consider_lagday):
-                        for k in  features[i]:
-                            feature_concat.append(features[i][k])
-                    
-                    data_feature = np.concatenate(feature_concat, axis=1)
-                    train_val_set_days = {'train': data_feature,
-                                          'train_label': label}
-                    
+                    data_feature = []
+                    labels = []
                 
-                    train_data = train_val_set_days['train']
-                    train_label = train_val_set_days['train_label']
+                    for _s in _stock_list:
+                    
+                        single_stock = tv_gen._selectData2array_specialDate_v2(f, corrDate[s][:corr_date], corr_date, 21, _s)
+                        
+                        
+                        for i in range(corr_date):
+                            single_stock_tmp, meta_v = f_extr.create_velocity(single_stock[i], meta)
+                            single_stock_tmp, meta_ud = f_extr.create_ud_cont_2cls(single_stock_tmp, meta_v)
+                            features_tmp, label_tmp = dp.get_data_from_normal(single_stock_tmp, meta_ud, predict_day, feature_list)
+                            label_tmp = reduce_label(label_tmp)
+                            labels += list(label_tmp)
+                            
+                            feature_concat = []
+                        
+                            for i in range(consider_lagday):
+                                for k in  features_tmp[i]:
+                                    feature_concat.append(features_tmp[i][k])
+                            
+                            data_feature.append(np.concatenate(feature_concat, axis=1))
+                        
+                    train_data = np.vstack(data_feature)
+                    train_label = np.array(labels)
+                    
+                        
+                    #single_stock = np.vstack(single_stock_f)
+#                    
+#                    single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:corr_date], 21, s)      
+#                    single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
+#                    single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
+#                    features, label = dp.get_data_from_normal(single_stock, meta_ud, predict_day, feature_list)
+#                    
+#                    label = reduce_label(label)
+#                    
+#                    feature_concat = []
+#                    
+#                    for i in range(consider_lagday):
+#                        for k in  features[i]:
+#                            feature_concat.append(features[i][k])
+#                    
+#                    data_feature = np.concatenate(feature_concat, axis=1)
+#                    train_val_set_days = {'train': data_feature,
+#                                          'train_label': label}
+#                    
+#                
+#                    train_data = train_val_set_days['train']
+#                    train_label = train_val_set_days['train_label']
                      
                     
                     #***************Get test data******************
-                    single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180601'])
+                    single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180610'])
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-                    single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
+                    single_stock_test, meta_ud = f_extr.create_ud_cont_2cls(single_stock_test, meta_v)
                     features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_ud, predict_day, feature_list)
                     
                     label_test = reduce_label(label_test)
@@ -172,7 +205,7 @@ for s in stock_list:
                    
                    
                     normal_score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
-                                                    n_jobs = 5, 
+                                                    n_jobs = 10, 
                                                     #fit_params = sample_weight,
                                                     scoring= scoreF.time_discriminator_score
                                                     ))
@@ -189,7 +222,7 @@ for s in stock_list:
                     if score >= best_accuracy:    
                         
                         best_accuracy = score
-                        gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3,
+                        gsearch2b = GridSearchCV(model, config['param'], n_jobs=10, cv=3,
                                                 scoring= scoreF.time_discriminator_score, 
                                               #fit_params = sample_weight
                                               )
@@ -223,10 +256,10 @@ for s in stock_list:
                                                                     'fintune_testscore': accuracy_score(test_label, fintue_predict),
                                                                     'corrDate':corr_date
                                                                    }
-  
-import pickle
-with open('../config/best_config_'+ model_name +'_speicalDate_npw_2cls_cscore.pkl', 'wb') as handle:
-    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+#import pickle
+#with open('../config/20180601/best_config_'+ model_name +'_speicalDate_npw_2cls_cscore.pkl', 'wb') as handle:
+#    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
     

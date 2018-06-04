@@ -31,6 +31,6 @@ xgb_nsnpw = '/home/ubuntu/shared/workspace/etf_prediction/trainer/config/2018052
 f = open(xgb_nsnpw, 'rb')
 xgb_nsnpw = pickle.load(f)
 
-xgb_npw= '/home/ubuntu/shared/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_npw_cscore.pkl'
+xgb_npw= '/home/ubuntu/shared/workspace/etf_prediction/trainer/config/20180601/best_config_xgb_2cls_speicalDate_npw_2cls_cscore.pkl'
 f = open(xgb_npw, 'rb')
 xgb_npw = pickle.load(f)

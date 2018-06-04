@@ -69,6 +69,19 @@ class train_validation_generaotr:
         stock = np.vstack(stock)
 
         return stock
+    
+    def _selectData2array_specialDate_v2(self, raw, dates, corr_date, period, stock_IDs):
+
+        data_by_dates = []
+        for d in dates:
+            data_by_dates.append(get_data_by_date(raw, d, period))
+            
+        data_by_dates = pd.concat(data_by_dates, axis=1)
+        stock = data_by_dates.loc[stock_IDs]
+        stock = np.vstack(stock)
+        
+        stock = np.reshape(stock, (corr_date, period, -1))
+        return stock
 
     
     def _split_train_val_side_by_side(self, data, train_windows, predict_windows, train_val_ratio):

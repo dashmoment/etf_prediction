@@ -133,6 +133,38 @@ def create_ud_cont(stock, meta):
 
     return stock, meta_ud
 
+def create_ud_cont_2cls(stock, meta): 
+
+    def check_cont_status(stock_ud, index):
+
+        count = [0,0]
+        for i in range(index-1, -1, -1):
+
+            if stock_ud[i] == stock_ud[index] == 0: count[0]+= 1
+            elif stock_ud[i] == stock_ud[index] == 1 or stock_ud[i] == stock_ud[index] == 2: 
+                count[1]+= 1
+            else: break
+
+        return count
+
+
+    fe = f_extr.feature_extractor(meta, stock)
+    f_ud, _ = getattr(fe, 'ud')()
+    f_ud = np.argmax(f_ud, axis = 1)
+
+    stock_ud = []
+    for i in range(len(stock)):
+        stock_ud.append(check_cont_status(f_ud, i))
+        
+
+    stock_ud = np.vstack(stock_ud)
+    stock = np.concatenate((stock_ud, stock), axis=1)
+   
+    meta_up = ['contdown', 'contup'] 
+    meta_ud = meta_up + meta
+
+    return stock, meta_ud
+
     
 def gather_features(data, feature_mask):
 

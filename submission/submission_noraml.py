@@ -19,6 +19,47 @@ from utility import dataProcess as dp
 from utility import general_utility as gu
 from utility import featureExtractor as f_extr
 
+class model_dict:
+    
+    def __init__(self, model, model_config):
+        
+        self.model_config = model_config
+        self.get = self.get_config(model)
+            
+    def get_config(self, model_name):
+
+        try:
+            model = getattr(self, model_name)
+            return model()
+
+        except: 
+            print("Can not find configuration")
+            raise
+            
+    def xgb(self):
+        
+        model_config = self.model_config
+        return xgb.XGBClassifier( 
+                                    learning_rate= model_config['model_config']['learning_rate'],
+                                    n_estimators=500,
+                                    max_depth = model_config['model_config']['max_depth'],
+                                    #min_child_weight = model_config['model_config']['min_child_weight'],
+                                    objective='multi:softmax', num_class=3)
+        
+    def xgb_2cls(self):
+        
+        model_config = self.model_config
+        return xgb.XGBClassifier( 
+                                    learning_rate= model_config['model_config']['learning_rate'],
+                                    n_estimators=500,
+                                    max_depth = model_config['model_config']['max_depth'],
+                                    #min_child_weight = model_config['model_config']['min_child_weight'],
+                                    objective='multi:softmax', num_class=2)
+    def rf(self, model_config):
+        model_config = self.model_config
+        return RandomForestClassifier(n_estimators = 500, max_depth=model_config['model_config']['max_depth'])
+    
+
 #stock_list =  [
 #                '0050', '0051',  '0052', '0053', 
 #                '0054', '0055', '0056', '0057', 
@@ -32,7 +73,7 @@ stock_list = ['0050']
 predict_days  = list(range(1,6))
 def get_data_label_pair(single_stock, model_config, meta, isShift=True):
     
-    features, label = dp.get_data_from_normal(single_stock, meta, predict_day, model_config['features'])
+    features, label = dp.get_data_from_normal(single_stock, meta, predict_day, model_config['features'], isShift=isShift)
 
     feature_concat = []
     for i in range(model_config['days']):
@@ -45,16 +86,69 @@ def get_data_label_pair(single_stock, model_config, meta, isShift=True):
     
     return data, label
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/all_feature_data_Nm_1_MinMax_94.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+mConfig_path = '../trainer/config/20180601/best_config_xgb_normal.pkl'
+
+
 tv_gen = dp.train_validation_generaotr()
-*_,meta = gu.read_metafile('/home/ubuntu/dataset/etf_prediction/all_meta_data_Nm_1_MinMax_94.pkl')
+*_,meta = gu.read_metafile(metaPath)
 f = tv_gen._load_data(srcPath)
-mConfig =  open('/home/ubuntu/shared/workspace/etf_prediction/trainer/config/best_config_rf_normal.pkl', 'rb')
+mConfig =  open(mConfig_path , 'rb')
 best_config = pickle.load(mConfig)
 
 predict_ud = {}
 
+def get_data_from_normal_v2(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
+    
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
 
+         features = {}
+        
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = f_extr.feature_extractor(meta_ud, data[d])
+            
+                for feature_name in model_config['features']:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-model_config['days'], -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+         label = label[predict_day]
+
+         return data, label
 
 for s in stock_list:
      predict_ud[s] = []
@@ -64,33 +158,29 @@ for s in stock_list:
          
          single_stock = tv_gen._selectData2array(f, [s], model_config['period'])
          single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
-         train_data, train_label = get_data_label_pair(single_stock, model_config, meta_v)
+         single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
+         train_data, train_label = get_data_from_normal_v2(single_stock, meta_ud, predict_day, model_config['features'],)
          
-         single_stock_test = tv_gen._selectData2array(f, [s], ['20180401', '20180620'])
+         single_stock_test = tv_gen._selectData2array(f, [s], ['20180408', '20180610'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v, False)
-         
-#         model = xgb.XGBClassifier( 
-#                                   learning_rate= model_config['model_config']['learning_rate'],
-#                                   n_estimators=500,
-#                                   max_depth = model_config['model_config']['max_depth'],
-#                                   min_child_weight = model_config['model_config']['min_child_weight'],
-#                                   objective='multi:softmax', num_class=3)
-         
-         model = RandomForestClassifier(n_estimators = 500, max_depth=model_config['model_config']['max_depth'])
-         
+         single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
+         test_data, test_label = get_data_from_normal_v2(single_stock_test, meta_ud, predict_day, model_config['features'], isShift=True)
+         #test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_ud, True)
+                     
+            
+         model = model_dict('xgb', model_config).get 
          model.fit(train_data, train_label)
             
-         #********For submission***********
-         test_data = np.reshape(test_data[-1,:], (1,-1))
-         ud = gu.map_ud(model.predict(test_data)[0])
-         predict_ud[s].append(ud)
+#         #********For submission***********
+#         test_data = np.reshape(test_data[0,:], (1,-1))
+#         ud = gu.map_ud(model.predict(test_data)[0])
+#         predict_ud[s].append(ud)
          
          #********For test************
-#         p = model.predict(test_data)   
-#         print(p)
-#         print(test_label)
-#         print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
+         p = model.predict(test_data)   
+         print(p)
+         print(test_label)
+         print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
                     
          
          
@@ -103,7 +193,14 @@ for s in stock_list:
 #    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
          
-         
-    
+srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'  
+f_new = tv_gen._load_data(srcPath)     
+
+ud = []
+ud.append(f_new.loc['0050']['20180528'][-3:])
+ud.append(f_new.loc['0050']['20180529'][-3:])
+ud.append(f_new.loc['0050']['20180530'][-3:])
+ud.append(f_new.loc['0050']['20180531'][-3:])
+ud.append(f_new.loc['0050']['20180601'][-3:])
     
 

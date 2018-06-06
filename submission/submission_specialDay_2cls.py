@@ -110,7 +110,7 @@ stock_list =  [
               ]
 
 
-stock_list = ['0050']
+stock_list = ['0052']
 predict_days  = list(range(1,6))
 
 

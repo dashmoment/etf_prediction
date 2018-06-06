@@ -35,8 +35,8 @@ class model_config:
                               'learning_rate': np.arange(0.01, 0.15, 0.05),
                               'max_depth': np.arange(3, 10, 3),
                               #'subsample':np.arange(0.5, 1, 0.2),
-                              'min_child_weight': np.arange(1,6,3),
-                              #'n_estimators': np.arange(400,600,100)
+                              #'min_child_weight': np.arange(1,6,3),
+                              'n_estimators': np.arange(400,700,100)
                          },
                  'fit_param':True                        
               }

@@ -493,7 +493,9 @@ def get_data_from_dow_friday(raw, stocks, meta, predict_day, feature_list = ['ra
 
     return features, label     
 
-def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'],isShift=True):
+def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
+
+    print(isShift)
 
     stocks = clean_stock(stocks,meta, feature_list)  
     current_mask =  np.ones(len(stocks), np.bool)
@@ -527,7 +529,50 @@ def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'],isS
         for feature_name in feature_list:
             features[d][feature_name], _ = getattr(fe, feature_name)()
             
-    label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
+    if isShift == True: label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
+    else: label = np.argmax(stocks[mask[0]][:, -3:], axis=-1)
+    
+    return features, label
+
+
+def get_data_from_normal_test(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
+
+    print(isShift)
+
+    stocks = clean_stock(stocks,meta, feature_list)  
+    current_mask =  np.ones(len(stocks), np.bool)
+    
+    def get_mask(current_mask):
+         for i in range(5):
+             current_mask[i] = False
+         
+         shift_array_mask = [current_mask]
+         for j in range(1, 5):
+             tmp_mask = np.zeros(np.shape(current_mask), np.bool)
+             for i in range(1, len(current_mask)):
+                if current_mask[i] == True: 
+                    tmp_mask[i-j] = True              
+                else: 
+                    tmp_mask[i] = False
+             shift_array_mask.append(tmp_mask)
+         return shift_array_mask
+    
+    mask = get_mask(current_mask)
+    
+    features = {}
+    
+    for d in range(5):
+        features[d] = {}
+        shifted_stock = stocks[mask[d]]
+        if isShift == True: shifted_stock = shifted_stock[:-predict_day]
+        
+        fe = fe_extr.feature_extractor(meta, shifted_stock)
+        
+        for feature_name in feature_list:
+            features[d][feature_name], _ = getattr(fe, feature_name)()
+            
+    if isShift == True: label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
+    else: label = np.argmax(stocks[mask[0]][:, -3:], axis=-1)
     
     return features, label
 

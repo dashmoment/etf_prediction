@@ -534,47 +534,107 @@ def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'], is
     
     return features, label
 
-
-def get_data_from_normal_test(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
-
-    print(isShift)
-
-    stocks = clean_stock(stocks,meta, feature_list)  
-    current_mask =  np.ones(len(stocks), np.bool)
+def get_data_from_normal_v2_train(stocks, meta, predict_day, consider_lagday,feature_list = ['ratio'], isShift=True):
     
-    def get_mask(current_mask):
-         for i in range(5):
-             current_mask[i] = False
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
          
-         shift_array_mask = [current_mask]
-         for j in range(1, 5):
-             tmp_mask = np.zeros(np.shape(current_mask), np.bool)
-             for i in range(1, len(current_mask)):
-                if current_mask[i] == True: 
-                    tmp_mask[i-j] = True              
-                else: 
-                    tmp_mask[i] = False
-             shift_array_mask.append(tmp_mask)
-         return shift_array_mask
-    
-    mask = get_mask(current_mask)
-    
-    features = {}
-    
-    for d in range(5):
-        features[d] = {}
-        shifted_stock = stocks[mask[d]]
-        if isShift == True: shifted_stock = shifted_stock[:-predict_day]
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
+
+         features = {}
         
-        fe = fe_extr.feature_extractor(meta, shifted_stock)
-        
-        for feature_name in feature_list:
-            features[d][feature_name], _ = getattr(fe, feature_name)()
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = fe_extr.feature_extractor(meta, data[d])
             
-    if isShift == True: label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
-    else: label = np.argmax(stocks[mask[0]][:, -3:], axis=-1)
+                for feature_name in feature_list:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-consider_lagday, -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+         label = label[predict_day]
+
+         return data, label
+
+def get_data_from_normal_v2_test(stocks, meta, predict_day, model_config, isShift=True):
     
-    return features, label
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
+
+         features = {}
+        
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = fe_extr.feature_extractor(meta, data[d])
+            
+                for feature_name in model_config['features']:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-model_config['days'], -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+         label = label[predict_day]
+
+         return data, label
 
         
         

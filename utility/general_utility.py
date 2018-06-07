@@ -25,6 +25,12 @@ def map_ud(predict):
 
     return mapper[predict]
 
+def map_ud_2cls(predict):
+
+    mapper = {0:-1, 1:1}
+
+    return mapper[predict]
+
 def get_sample_weight(label):
     
     weight = []

@@ -11,7 +11,7 @@ def get_score_wieght(label):
         elif i >= len(label)*0.2 and i < len(label)*0.4:
             weight.append(2.5)
         elif i >= len(label)*0.4 and i < len(label)*0.6:
-            weight.append(2.0)
+            weight.append(2)
         elif i >= len(label)*0.6 and i < len(label)*0.8:
             weight.append(1.5)
         else:

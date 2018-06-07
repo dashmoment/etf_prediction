@@ -71,24 +71,10 @@ class model_dict:
 
 stock_list = ['0050']
 predict_days  = list(range(1,6))
-def get_data_label_pair(single_stock, model_config, meta, isShift=True):
-    
-    features, label = dp.get_data_from_normal(single_stock, meta, predict_day, model_config['features'], isShift=isShift)
 
-    feature_concat = []
-    for i in range(model_config['days']):
-         for k in  features[i]:
-             feature_concat.append( features[i][k])
-    
-    data_feature = np.concatenate(feature_concat, axis=1)
-    data = data_feature
-    label = label
-    
-    return data, label
-
-srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
-mConfig_path = '../trainer/config/20180601/best_config_xgb_normal.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+mConfig_path = '../trainer/config/20180601/best_config_xgb_normal_cs_v2.pkl'
 
 
 tv_gen = dp.train_validation_generaotr()
@@ -99,56 +85,11 @@ best_config = pickle.load(mConfig)
 
 predict_ud = {}
 
-def get_data_from_normal_v2(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
-    
-         idx = len(stocks)
-         label = {                
-                  1:[],
-                  2:[],
-                  3:[],
-                  4:[],
-                  5:[]
-                  }
-         
-         data = {                
-                  1:[],
-                  2:[],
-                  3:[],
-                  4:[],
-                  5:[]
-                  }
-         
-         while idx > 5:    
-             for i in range(1,6):
-                 
-                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
-             if isShift: idx = idx - 5
-             
-             for i in range(1,6):
-                 data[6-i].append(stocks[idx-i])
-                 #print(idx-i, ' ',stocks[idx-i][92])
-             if not isShift: idx = idx - 5
-
-         features = {}
-        
-         for d in data.keys():
-                features[d] = {}
-                data[d] = np.stack(data[d], axis=0)
-                fe = f_extr.feature_extractor(meta_ud, data[d])
-            
-                for feature_name in model_config['features']:
-                     features[d][feature_name], _ = getattr(fe, feature_name)()
-                     
-         feature_concat = []
-         for i in range(5,5-model_config['days'], -1):
-             for k in  features[i]:
-                 feature_concat.append( features[i][k])
-        
-         data_feature = np.concatenate(feature_concat, axis=1)
-         data = data_feature
-         label = label[predict_day]
-
-         return data, label
+submission = False
+if submission:
+    isShift = False
+else:
+    isShift = True
 
 for s in stock_list:
      predict_ud[s] = []
@@ -156,15 +97,15 @@ for s in stock_list:
          
          model_config =  best_config[s][predict_day]
          
-         single_stock = tv_gen._selectData2array(f, [s], model_config['period'])
+         single_stock = tv_gen._selectData2array(f, [s],  ['20130101', '20180408'])
          single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
          single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
-         train_data, train_label = get_data_from_normal_v2(single_stock, meta_ud, predict_day, model_config['features'],)
+         train_data, train_label = dp.get_data_from_normal_v2_test(single_stock, meta_ud, predict_day, model_config)
          
          single_stock_test = tv_gen._selectData2array(f, [s], ['20180408', '20180610'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
          single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
-         test_data, test_label = get_data_from_normal_v2(single_stock_test, meta_ud, predict_day, model_config['features'], isShift=True)
+         test_data, test_label = dp.get_data_from_normal_v2_test(single_stock_test, meta_ud, predict_day, model_config, isShift=isShift)
          #test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_ud, True)
                      
             
@@ -172,15 +113,19 @@ for s in stock_list:
          model.fit(train_data, train_label)
             
 #         #********For submission***********
-#         test_data = np.reshape(test_data[0,:], (1,-1))
-#         ud = gu.map_ud(model.predict(test_data)[0])
-#         predict_ud[s].append(ud)
+         
+         if submission:
+             test_data = np.reshape(test_data[0,:], (1,-1))
+             ud = gu.map_ud(model.predict(test_data)[0])
+             predict_ud[s].append(ud)
          
          #********For test************
-         p = model.predict(test_data)   
-         print(p)
-         print(test_label)
-         print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
+         
+         else:
+             p = model.predict(test_data)   
+             print(p)
+             print(test_label)
+             print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
                     
          
          

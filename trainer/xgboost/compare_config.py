@@ -7,7 +7,7 @@ import pickle
     
 
 xgb_config = '../config/20180525/best_config_xgb_speicalDate.pkl'
-rf_config = '../config/20180525/best_config_rf_speicalDate.pkl'
+rf_config = '../config/20180531/best_config_rf_speicalDate_npw_mfcont_cscore.pkl'
 svc_config = '../config/20180525/best_config_svc_speicalDate.pkl'
 stack_config = '../config/20180525/best_config_stack_speicalDate.pkl'
 
@@ -26,6 +26,13 @@ f = open(stack_config, 'rb')
 stack_config = pickle.load(f)
 
 
-xgb_dow = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_dow_all_wcscore.pkl'
-f = open(xgb_dow, 'rb')
-xgb_dow = pickle.load(f)
+
+#xgb_dow = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+xgb_nsnpw = '/home/ubuntu/shared/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+f = open(xgb_nsnpw, 'rb')
+xgb_nsnpw = pickle.load(f)
+
+xgb_npw= '/home/ubuntu/shared/workspace/etf_prediction/trainer/config/20180601/best_config_xgb_2cls_speicalDate_npw_2cls_cscore.pkl'
+f = open(xgb_npw, 'rb')
+xgb_npw = pickle.load(f)
+

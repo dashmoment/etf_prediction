@@ -481,8 +481,7 @@ class StackingAveragedModels(BaseEstimator):
    
     # We again fit the data on clones of the original models
     def fit(self, X, y, sample_weight = None):
-        
-     
+             
         self.base_models_ = [list() for x in self.base_models]
         self.meta_model_ = clone(self.meta_model)
         kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=156)

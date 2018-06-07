@@ -4,6 +4,7 @@ from tqdm import tqdm
 from utility import general_utility as ut
 from utility import featureExtractor as fe_extr
 
+
 verbose_state = True
 
 def get_data_by_date(raw, startDay, period):
@@ -62,12 +63,25 @@ class train_validation_generaotr:
 
         data_by_dates = []
         for d in dates:
-            data_by_dates.append(get_data_by_date(raw, d, 21))
+            data_by_dates.append(get_data_by_date(raw, d, period))
             
         data_by_dates = pd.concat(data_by_dates, axis=1)
         stock = data_by_dates.loc[stock_IDs]
         stock = np.vstack(stock)
 
+        return stock
+    
+    def _selectData2array_specialDate_v2(self, raw, dates, corr_date, period, stock_IDs):
+
+        data_by_dates = []
+        for d in dates:
+            data_by_dates.append(get_data_by_date(raw, d, period))
+            
+        data_by_dates = pd.concat(data_by_dates, axis=1)
+        stock = data_by_dates.loc[stock_IDs]
+        stock = np.vstack(stock)
+        
+        stock = np.reshape(stock, (corr_date, period, -1))
         return stock
 
     
@@ -378,7 +392,7 @@ def clean_stock(single_stock, meta, feature_list):
         feature_mask += tmp_mask
 
     for i in range(len(single_stock)):
-        if not np.isnan(single_stock[i,feature_mask]).any():
+        if not np.isnan(single_stock[i,list(set(feature_mask))]).any():
             tmpStock.append(single_stock[i])
     single_stock = np.array(tmpStock)
 
@@ -392,6 +406,8 @@ def get_data_from_dow(raw, stocks, meta, predict_day, feature_list = ['ratio'], 
     df['date'] = pd.to_datetime(df['date'])
     df['dow'] = df['date'].dt.dayofweek
     dow_array = np.array(df['dow'][-len(stocks):])
+    #print('*****************************')
+    #print(np.array(df['date'][-len(stocks):])[-1])
     dow_array_mask_mon =  np.equal(dow_array, predict_day)
      
     def get_mask(dow_array_mask_mon):
@@ -430,7 +446,57 @@ def get_data_from_dow(raw, stocks, meta, predict_day, feature_list = ['ratio'], 
 
     return features, label     
 
-def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'],isShift=True):
+def get_data_from_dow_friday(raw, stocks, meta, predict_day, feature_list = ['ratio'], isShift = True):
+
+    stocks = clean_stock(stocks,meta, feature_list)   
+    
+    df = pd.DataFrame({'date':raw.columns})
+    df['date'] = pd.to_datetime(df['date'])
+    df['dow'] = df['date'].dt.dayofweek
+    dow_array = np.array(df['dow'][-len(stocks):])
+    #print('*****************************')
+    #print(np.array(df['date'][-len(stocks):])[-1])
+    dow_array_mask_mon =  np.equal(dow_array, 4)
+     
+    def get_mask(dow_array_mask_mon):
+         for i in range(5):
+             dow_array_mask_mon[i] = False
+         
+         dow_array_mask = [dow_array_mask_mon]
+         for j in range(1, 5):
+             tmp_mask = np.zeros(np.shape(dow_array_mask_mon), np.bool)
+             for i in range(1, len(dow_array_mask_mon)):
+                if dow_array_mask_mon[i] == True: 
+                    tmp_mask[i-j] = True              
+                else: 
+                    tmp_mask[i] = False
+             dow_array_mask.append(tmp_mask)
+         return dow_array_mask
+
+    dow_array_mask = get_mask(dow_array_mask_mon)
+    
+    
+    dow = {0:'mon', 1:'tue', 2:'wed', 3:'thu', 4:'fri'}
+    features = {}
+    
+    for d in range(5):
+        features[dow[d]] = {}
+        shifted_stock = stocks[dow_array_mask[d]]
+
+        if isShift == True: shifted_stock = shifted_stock[:-1]      
+        fe = fe_extr.feature_extractor(meta, shifted_stock)
+        
+        for feature_name in feature_list:
+            features[dow[d]][feature_name], _ = getattr(fe, feature_name)()
+            
+    if isShift == True: label = np.argmax(stocks[dow_array_mask[predict_day]][1:, -3:], axis=-1)
+    else: label = np.argmax(stocks[dow_array_mask[predict_day]][:, -3:], axis=-1)
+
+    return features, label     
+
+def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
+
+    print(isShift)
 
     stocks = clean_stock(stocks,meta, feature_list)  
     current_mask =  np.ones(len(stocks), np.bool)
@@ -464,11 +530,175 @@ def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'],isS
         for feature_name in feature_list:
             features[d][feature_name], _ = getattr(fe, feature_name)()
             
-    label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
+    if isShift == True: label = np.argmax(stocks[mask[0]][predict_day:, -3:], axis=-1)
+    else: label = np.argmax(stocks[mask[0]][:, -3:], axis=-1)
     
     return features, label
 
+def get_data_from_normal_v2_train(stocks, meta, predict_day, consider_lagday,feature_list = ['ratio'], isShift=True):
+    
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
+
+         features = {}
         
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = fe_extr.feature_extractor(meta, data[d])
+            
+                for feature_name in feature_list:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-consider_lagday, -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+         label = label[predict_day]
+
+         return data, label
+
+def get_data_from_normal_v2_test(stocks, meta, predict_day, model_config, isShift=True):
+    
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
+
+         features = {}
+        
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = fe_extr.feature_extractor(meta, data[d])
+            
+                for feature_name in model_config['features']:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-model_config['days'], -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+         label = label[predict_day]
+
+         return data, label
+
+def get_data_from_normal_weekly_train(stocks, meta, consider_lagday,feature_list = ['ratio'], isShift=True):
+    
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
+
+         features = {}
+        
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = fe_extr.feature_extractor(meta, data[d])
+            
+                for feature_name in feature_list:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-consider_lagday, -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+
+         weekly_label = []
+         for i in range(1, 6):
+            weekly_label.append([ut.map_ud(_label) for _label in label[i]])
+
+         weekly_label = np.sum(weekly_label, axis = 0)
+
+         for i in range(len(weekly_label)):
+            if weekly_label[i] > 0 or weekly_label[i] == 0:
+                weekly_label[i] = 1
+            else:
+                weekly_label[i] = 0
+
+         return data, weekly_label,label
+    
         
         
         

@@ -72,18 +72,21 @@ def get_data_label_pair(single_stock, model_config, meta, isShift=True):
     
     return data, label
 
-#srcPath = '/home/ubuntu/dataset/etf_prediction/0518/all_feature_data_Nm_1_MinMax_120.pkl'
-srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
-corrDate_path = '../Data/0525/xcorr_date_data.pkl'
-mConfig_path = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+corrDate_path = '/home/ubuntu/dataset/etf_prediction/0525/xcorr_date_data.pkl'
+mConfig_path = '../trainer/config/best_config_xgb_speicalDate_npw_mfcont_cscore.pkl'
+#srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+#corrDate_path = '../Data/0525/xcorr_date_data.pkl'
+#mConfig_path = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
 
 tv_gen = dp.train_validation_generaotr()
 *_,meta = gu.read_metafile(metaPath)
 f = tv_gen._load_data(srcPath)
 mConfig =  open(mConfig_path, 'rb')
 corrDate = gu.read_datefile(corrDate_path)
-corrDate_range = list(range(3,len(corrDate['0050'])+1))  
+#corrDate_range = list(range(3,len(corrDate['0050'])+1))  
 
 best_config = pickle.load(mConfig)
 predict_ud = {}
@@ -126,17 +129,19 @@ for s in stock_list:
          
          single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:model_config['corrDate']], 21, s)
          single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
-         train_data, train_label = get_data_label_pair(single_stock, model_config, meta_v)
+         single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
+         train_data, train_label = get_data_label_pair(single_stock, model_config, meta_ud)
          
-         single_stock_test = tv_gen._selectData2array(f, [s], ['20180401', '20180620'])
+         single_stock_test = tv_gen._selectData2array(f, [s], ['20180414', '20180620'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
-         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_v, False)
+         single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
+         test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_ud, False)
          
          model = model_dict('xgb', model_config).get      
          #model = get_stack_model( s, predict_day)    
          model.fit(train_data, train_label)
             
-         #********For submission***********
+#         #********For submission***********
          test_data = np.reshape(test_data[-1,:], (1,-1))
          ud = gu.map_ud(model.predict(test_data)[0])
          predict_ud[s].append(ud)
@@ -153,9 +158,9 @@ for s in stock_list:
     
         
          
-import pickle
-with open('./20180525/predict_ud_xgb_speicalDate_nsw_npw_cscore.pkl', 'wb') as handle:
-    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
+#import pickle
+#with open('./20180525/predict_ud_xgb_speicalDate_nsw_npw_cscore.pkl', 'wb') as handle:
+#    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
          
          

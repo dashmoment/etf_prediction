@@ -49,6 +49,16 @@ class feature_extractor:
         featuremask = [i for i in range(len(self.featurelist)) if 'MA_' in self.featurelist[i]]
         features = gather_features(self.data, featuremask)
         return features, featuremask
+
+    def lag(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'Lag' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
+
+    def cont(self):
+        featuremask = [i for i in range(len(self.featurelist)) if 'cont' in self.featurelist[i]]
+        features = gather_features(self.data, featuremask)
+        return features, featuremask
     
 def create_velocity(stock, meta):
 
@@ -60,6 +70,100 @@ def create_velocity(stock, meta):
     meta_v = ['velocity_1', 'velocity_v2','velocity_v3', 'velocity_v4', 'velocity_v5'] + meta       
 
     return stock, meta_v
+
+
+def create_ud_info(stock, meta, backDay = 1): 
+
+    fe = f_extr.feature_extractor(meta, stock)
+    f_ud, _ = getattr(fe, 'ud')()
+    stock_ud = np.zeros((len(stock), backDay*3))
+
+    f_ud = np.argmax(f_ud, axis = 1)
+
+    for i in range(backDay, len(stock)):
+        for j in range(backDay):
+            if f_ud[i] == f_ud[i-j-1] == 0:
+                stock_ud[i][j*3] = 1
+
+            elif f_ud[i] == f_ud[i-j-1] == 1:
+                stock_ud[i][j*3 + 1] = 1
+
+            elif f_ud[i] == f_ud[i-j-1] == 2:
+                stock_ud[i][j*3 + 2] = 1
+
+    stock_ud = stock_ud[backDay:]
+    stock = stock[backDay:]
+    stock = np.concatenate((stock_ud, stock), axis=1)
+   
+    meta_temp = ['downLag_','fairLag_', 'upLag_'] 
+    meta_label = [meta_l + str(bd) for bd in range(backDay) for meta_l in meta_temp]
+    meta_ud = meta_label + meta
+
+    return stock, meta_ud
+
+
+def create_ud_cont(stock, meta): 
+
+    def check_cont_status(stock_ud, index):
+
+        count = [0,0,0]
+        for i in range(index-1, 0, -1):
+            if stock_ud[i] == stock_ud[index] == 0: count[0]+= 1
+            elif stock_ud[i] == stock_ud[index] == 1: count[1]+= 1
+            elif stock_ud[i] == stock_ud[index] == 2: count[2]+= 1
+            else: break
+
+        return count
+
+
+    fe = f_extr.feature_extractor(meta, stock)
+    f_ud, _ = getattr(fe, 'ud')()
+    f_ud = np.argmax(f_ud, axis = 1)
+
+    stock_ud = []
+    for i in range(len(stock)):
+        stock_ud.append(check_cont_status(f_ud, i))
+        
+
+    stock_ud = np.vstack(stock_ud)
+    stock = np.concatenate((stock_ud, stock), axis=1)
+   
+    meta_up = ['contdown','contfair', 'contup'] 
+    meta_ud = meta_up + meta
+
+    return stock, meta_ud
+
+def create_ud_cont_2cls(stock, meta): 
+
+    def check_cont_status(stock_ud, index):
+
+        count = [0,0]
+        for i in range(index-1, -1, -1):
+
+            if stock_ud[i] == stock_ud[index] == 0: count[0]+= 1
+            elif stock_ud[i] == stock_ud[index] == 1 or stock_ud[i] == stock_ud[index] == 2: 
+                count[1]+= 1
+            else: break
+
+        return count
+
+
+    fe = f_extr.feature_extractor(meta, stock)
+    f_ud, _ = getattr(fe, 'ud')()
+    f_ud = np.argmax(f_ud, axis = 1)
+
+    stock_ud = []
+    for i in range(len(stock)):
+        stock_ud.append(check_cont_status(f_ud, i))
+        
+
+    stock_ud = np.vstack(stock_ud)
+    stock = np.concatenate((stock_ud, stock), axis=1)
+   
+    meta_up = ['contdown', 'contup'] 
+    meta_ud = meta_up + meta
+
+    return stock, meta_ud
 
     
 def gather_features(data, feature_mask):

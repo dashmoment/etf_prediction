@@ -29,8 +29,8 @@ stock_list =  [
 #stock_list = ['0050']
 
 date_range_normal = [
-                        ['20130101','20150601'],
-                        ['20150101','20170101'],
+                        #['20130101','20150601'],
+                        #['20150101','20170101'],
                         ['20130101','20180408'],
                     ]
 date_range_special = [['20130101','20180408']]
@@ -70,7 +70,7 @@ feature_list_comb_special = [
 predict_days  = list(range(1, 6))  #The future # day wish model to predict
 consider_lagdays = list(range(1,6)) #Contain # lagday information for a training input
 
-config  = mc.model_config('xgb').get
+config  = mc.model_config('xgb_2cls').get
 best_config = {}
 
 srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
@@ -104,7 +104,7 @@ for s in stock_list:
                     single_stock = tv_gen._selectData2array(f, [s], period)
                     single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
                     single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
-                    features, label = dp.get_data_from_normal_v2_train(single_stock, meta_ud, predict_day, consider_lagday, feature_list)
+                    features, label,rawt = dp.get_data_from_normal_weekly_train(single_stock, meta_ud, consider_lagday, feature_list)
                     
                     data_feature = features
                     train_val_set_days = {'train': data_feature,
@@ -117,7 +117,7 @@ for s in stock_list:
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180408','20180610'])
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
                     single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
-                    features_test, label_test = dp.get_data_from_normal_v2_train(single_stock_test, meta_ud, predict_day, consider_lagday, feature_list)
+                    features_test, label_test, rawl = dp.get_data_from_normal_weekly_train(single_stock_test, meta_ud, consider_lagday, feature_list)
                     #features_test, label_test = dp.get_data_from_normal_v2_train(single_stock_test, meta_ud, 5, 2, ['ratio', 'cont'])
                     
 
@@ -193,7 +193,7 @@ for s in stock_list:
    
     
 import pickle
-with open('../config/20180601/best_config_xgb_normal_cv_sc_v2.pkl', 'wb') as handle:
+with open('../config/20180601/best_config_xgb_normal_cv_sc_weekly.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

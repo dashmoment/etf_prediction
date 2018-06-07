@@ -104,15 +104,15 @@ for s in stock_list:
                     single_stock = tv_gen._selectData2array(f, [s], period)
                     single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
                     single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
-                    features, label = dp.get_data_from_normal_v2_train(single_stock, meta_ud, predict_day, consider_lagday, feature_list)
-                    data_feature = features
-#                    feature_concat = []
-#                    
-#                    for i in range(consider_lagday):
-#                        for k in  features[i]:
-#                            feature_concat.append( features[i][k])
-#            
-#                    data_feature = np.concatenate(feature_concat, axis=1)
+                    features, label = dp.get_data_from_normal(single_stock, meta_ud, predict_day, feature_list)
+#                    data_feature = features
+                    feature_concat = []
+                    
+                    for i in range(consider_lagday):
+                        for k in  features[i]:
+                            feature_concat.append( features[i][k])
+            
+                    data_feature = np.concatenate(feature_concat, axis=1)
                     train_val_set_days = {'train': data_feature,
                                           'train_label': label}                    
                     train_data = train_val_set_days['train']
@@ -123,17 +123,17 @@ for s in stock_list:
                     single_stock_test = tv_gen._selectData2array(f, [s], ['20180408','20180601'])
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
                     single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
-                    features_test, label_test = dp.get_data_from_normal_v2_train(single_stock_test, meta_ud, predict_day, consider_lagday, feature_list)
+                    features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_ud, predict_day, feature_list)
                     
-#                    feature_concat_test = []
-#                    
-#                    for i in range(consider_lagday):
-#                        for k in  features_test[i]:
-#                            feature_concat_test.append(features_test[i][k])
-#                                     
-#                    data_feature_test = np.concatenate(feature_concat_test, axis=1)  
+                    feature_concat_test = []
                     
-                    data_feature_test = features_test
+                    for i in range(consider_lagday):
+                        for k in  features_test[i]:
+                            feature_concat_test.append(features_test[i][k])
+                                     
+                    data_feature_test = np.concatenate(feature_concat_test, axis=1)  
+                    
+#                    data_feature_test = features_test
                     test_val_set_days = {'test': data_feature_test,
                                           'test_label': label_test}
                     

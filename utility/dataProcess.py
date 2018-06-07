@@ -4,6 +4,7 @@ from tqdm import tqdm
 from utility import general_utility as ut
 from utility import featureExtractor as fe_extr
 
+
 verbose_state = True
 
 def get_data_by_date(raw, startDay, period):
@@ -636,7 +637,68 @@ def get_data_from_normal_v2_test(stocks, meta, predict_day, model_config, isShif
 
          return data, label
 
+def get_data_from_normal_weekly_train(stocks, meta, consider_lagday,feature_list = ['ratio'], isShift=True):
+    
+         idx = len(stocks)
+         label = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         data = {                
+                  1:[],
+                  2:[],
+                  3:[],
+                  4:[],
+                  5:[]
+                  }
+         
+         while idx > 5:    
+             for i in range(1,6):
+                 
+                 label[6-i].append(np.argmax(stocks[idx-i, -3:],axis=-1))
+             if isShift: idx = idx - 5
+             
+             for i in range(1,6):
+                 data[6-i].append(stocks[idx-i])
+                 #print(idx-i, ' ',stocks[idx-i][92])
+             if not isShift: idx = idx - 5
+
+         features = {}
         
+         for d in data.keys():
+                features[d] = {}
+                data[d] = np.stack(data[d], axis=0)
+                fe = fe_extr.feature_extractor(meta, data[d])
+            
+                for feature_name in feature_list:
+                     features[d][feature_name], _ = getattr(fe, feature_name)()
+                     
+         feature_concat = []
+         for i in range(5,5-consider_lagday, -1):
+             for k in  features[i]:
+                 feature_concat.append( features[i][k])
+        
+         data_feature = np.concatenate(feature_concat, axis=1)
+         data = data_feature
+
+         weekly_label = []
+         for i in range(1, 6):
+            weekly_label.append([ut.map_ud(_label) for _label in label[i]])
+
+         weekly_label = np.sum(weekly_label, axis = 0)
+
+         for i in range(len(weekly_label)):
+            if weekly_label[i] > 0 or weekly_label[i] == 0:
+                weekly_label[i] = 1
+            else:
+                weekly_label[i] = 0
+
+         return data, weekly_label,label
+    
         
         
         

@@ -18,24 +18,24 @@ from utility import dataProcess as dp
 import model_config as mc
 import scoreFunc as scoreF
 
-stock_list =  [
-                '0050', '0051',  '0052', '0053', 
-                '0054', '0055', '0056', '0057', 
-                '0058', '0059', '006201', '006203', 
-                '006204', '006208','00690', '00692',  
-                '00701', '00713'
-              ]
+#stock_list =  [
+#                '0050', '0051',  '0052', '0053', 
+#                '0054', '0055', '0056', '0057', 
+#                '0058', '0059', '006201', '006203', 
+#                '006204', '006208','00690', '00692',  
+#                '00701', '00713'
+#              ]
 
-#stock_list = ['0050']
+stock_list = ['0050']
 date_range_normal = [
-                        ['20130101','20150601'],
-                        ['20150101','20170101'],
-                        ['20160101','20180610'],
-                        ['20130101','20180610']
+                        #['20130101','20150601'],
+                        #['20150101','20170101'],
+                        #['20160101','20180610'],
+                        ['20130101','20180401']
                     ]
 
 
-date_range_special = [['20130101','20180610']]
+date_range_special = [['20130101','20180401']]
 
 feature_list_comb_noraml = [
                                 ['velocity'],
@@ -154,15 +154,15 @@ for s in stock_list:
                     normal_score = np.mean(cross_val_score(model, train_data, train_label, cv=3,
                                                     n_jobs = 5, 
                                                     #scoring= scoreF.time_discriminator_score,
-                                                    fit_params = sample_weight
+                                                    #fit_params = sample_weight
                                                     ))
                      
                         
                     model.fit(train_data, train_label)
                     y_xgb_train = model.predict(train_data)
                     y_xgb_test = model.predict(test_data)
-                    print("Train Accuracy of day {} [DOW][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
-                    print("Validation Accuracy  {} [DOW][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
+                    #print("Train Accuracy of day {} [DOW][{}]: {}".format(predict_day, model_name, accuracy_score(train_label, y_xgb_train)))
+                    #print("Validation Accuracy  {} [DOW][{}]: {} ".format(predict_day, model_name, accuracy_score(test_label, y_xgb_test)))
                     
                     
                     #test_score = accuracy_score(y_xgb_test, test_label)
@@ -175,12 +175,13 @@ for s in stock_list:
                          
                          gsearch2b = GridSearchCV(model, config['param'], n_jobs=5, cv=3,
                                                   #scoring= scoreF.time_discriminator_score, 
-                                                  fit_params = sample_weight)
+                                                  #fit_params = sample_weight
+                                                  )
                          gsearch2b.fit(train_data, train_label)
                          fintue_predict = gsearch2b.predict(test_data)
                          fintune_testscore = accuracy_score(test_label, fintue_predict)
                     
-                         if gsearch2b.best_score_ > best_accuracy:
+                         if fintune_testscore > accuracy_score(test_label, y_xgb_test):
                              best_accuracy = gsearch2b.best_score_
                              best_config[s][predict_day] = {
                                                             'train acc': accuracy_score(train_label, y_xgb_train),
@@ -216,7 +217,7 @@ for s in stock_list:
    
     
 import pickle
-with open('../config/best_config_'+ model_name +'_dow_all_normal.pkl', 'wb') as handle:
+with open('../config/best_config_'+ model_name +'_nsw_npw_cscore.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

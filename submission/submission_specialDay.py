@@ -118,9 +118,6 @@ class model_dict:
         model_config = self.model_config
         return RandomForestClassifier(n_estimators = 500, max_depth=model_config['model_config']['max_depth'])
     
-
-
-
 for s in stock_list:
      predict_ud[s] = []
      for predict_day in predict_days:

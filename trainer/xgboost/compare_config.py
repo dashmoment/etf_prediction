@@ -26,6 +26,6 @@ f = open(stack_config, 'rb')
 stack_config = pickle.load(f)
 
 
-xgb_dow = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_speicalDate_nsw_npw_cscore.pkl'
+xgb_dow = '/home/dashmoment/workspace/etf_prediction/trainer/config/20180526/best_config_xgb_dow_all_wcscore.pkl'
 f = open(xgb_dow, 'rb')
 xgb_dow = pickle.load(f)

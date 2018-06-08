@@ -74,7 +74,7 @@ class dqn:
                  targets[i, action[i]] = reward[i] + self.GAMMA * np.max(predict_t1[i])
                  
          self.loss += self.model.train_on_batch(state, targets)
-        
+
 
 stock_list =  [
                 '0050', '0051',  '0052', '0053', 
@@ -85,8 +85,8 @@ stock_list =  [
               ]
 
 
-srcPath = '../Data/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath = '../Data/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
 
 *_,meta = gu.read_metafile(metaPath)
 tv_gen = dp.train_validation_generaotr()
@@ -97,6 +97,48 @@ single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
 single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
 features, label = dp.get_data_from_normal_v2_train(single_stock, meta_ud, 1, 5, ['ratio', 'cont', 'ma', 'velocity'])
 
+#********Play game**********
+
+memory_size = 80
+stage_exploration = 80
+iteration = 0
+total_iteration = 1000
+
+memory = []
+
+agent = dqn(epsilon = 0.05, 
+            GAMMA = 0.1, 
+            learning_rate = 1e-4, 
+            batchSize = 32)
+
+while iteration < total_iteration:
     
+    state = features[iteration%len(features)]
+    label_t = label[iteration%len(features)]
+    
+    iteration+=1
+    
+    action = agent.action(np.reshape(state,(1,-1)))
+    
+    if len(memory) > memory_size:
+        memory = memory[1:]
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -37,7 +37,7 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-stock_list = ['0050']
+#stock_list = ['00701']
 feature_list_comb_noraml = [
                                 ['ma'],
                                 ['ratio'],
@@ -77,12 +77,12 @@ consider_lagdays = list(range(1,6)) #Contain # lagday information for a training
 model_name = 'xgb_2cls'           
 config  = mc.model_config(model_name).get
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-corrDate_path = '/home/ubuntu/dataset/etf_prediction/0601/xcorr_date_data.pkl'
-#srcPath = '../../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-#metaPath = '../../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-#corrDate_path = '../../Data/0601/xcorr_date_data.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+#corrDate_path = '/home/ubuntu/dataset/etf_prediction/0601/xcorr_date_data.pkl'
+srcPath = '../../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath = '../../Data/0608/all_meta_data_Nm_1_MinMax_120.pkl'
+corrDate_path = '../../Data/0608/xcorr_date_data.pkl'
 *_,meta = gu.read_metafile(metaPath)
 corrDate = gu.read_datefile(corrDate_path)
 corrDate_range = list(range(3,len(corrDate['0050']),3))  
@@ -97,8 +97,9 @@ for s in stock_list:
     best_config[s] = {}
     progress.set_description("[SP][{}][{}]".format(model_name, s))
     
-    if s == '0050': _stock_list = ['0050', '2330']
-    else: _stock_list = [s] 
+    #if s == '0050': _stock_list = ['0050', '2330']
+    #else: _stock_list = [s]
+    _stock_list = [s]
     
     for predict_day in predict_days:
         
@@ -170,7 +171,7 @@ for s in stock_list:
                      
                     
                     #***************Get test data******************
-                    single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180610'])
+                    single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180701'])
                     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
                     single_stock_test, meta_ud = f_extr.create_ud_cont_2cls(single_stock_test, meta_v)
                     features_test, label_test = dp.get_data_from_normal(single_stock_test, meta_ud, predict_day, feature_list)
@@ -257,9 +258,9 @@ for s in stock_list:
                                                                     'corrDate':corr_date
                                                                    }
 
-#import pickle
-#with open('../config/20180601/best_config_'+ model_name +'_speicalDate_npw_2cls_cscore.pkl', 'wb') as handle:
-#    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
+import pickle
+with open('../config/20180608/best_config_'+ model_name +'_speicalDate_npw_2cls_cscore.pkl', 'wb') as handle:
+    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
     

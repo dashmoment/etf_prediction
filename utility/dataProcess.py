@@ -496,8 +496,6 @@ def get_data_from_dow_friday(raw, stocks, meta, predict_day, feature_list = ['ra
 
 def get_data_from_normal(stocks, meta, predict_day, feature_list = ['ratio'], isShift=True):
 
-    print(isShift)
-
     stocks = clean_stock(stocks,meta, feature_list)  
     current_mask =  np.ones(len(stocks), np.bool)
     

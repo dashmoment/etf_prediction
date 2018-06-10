@@ -74,7 +74,6 @@ def get_data_label_pair(f, model_config, meta, predict_day, isShift=True):
     
     single_stock = tv_gen._selectData2array_specialDate_v2(f, corrDate[s][:model_config['corrDate']], model_config['corrDate'], 21, s)
     
-    print(predict_day)
     labels = []
     data_feature = []
     for i in range(model_config['corrDate']):
@@ -110,20 +109,20 @@ stock_list =  [
               ]
 
 
-stock_list = ['0052']
+#stock_list = ['00701']
 predict_days  = list(range(1,6))
 
 
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-corrDate_path = '/home/ubuntu/dataset/etf_prediction/0601/xcorr_date_data.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+#corrDate_path = '/home/ubuntu/dataset/etf_prediction/0601/xcorr_date_data.pkl'
 #mConfig_path = '../trainer/config/best_config_xgb_speicalDate_npw_mfcont_cscore.pkl'
 
-#srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-#metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-#corrDate_path = '../Data/0601/xcorr_date_data.pkl'
-mConfig_path = '../trainer/config/20180601/best_config_xgb_2cls_speicalDate_npw_2cls_cscore.pkl'
+srcPath = '../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath = '../Data/0608/all_meta_data_Nm_1_MinMax_120.pkl'
+corrDate_path = '../Data/0608/xcorr_date_data.pkl'
+mConfig_path = '../trainer/config/20180608/best_config_xgb_2cls_speicalDate_npw_2cls_cscore.pkl'
 
 tv_gen = dp.train_validation_generaotr()
 *_,meta = gu.read_metafile(metaPath)
@@ -134,6 +133,7 @@ corrDate = gu.read_datefile(corrDate_path)
 
 best_config = pickle.load(mConfig)
 predict_ud = {}
+predict_ud_rev = {}
 
 class model_dict:
     
@@ -185,16 +185,16 @@ else:
 
 for s in stock_list:
      predict_ud[s] = []
+     predict_ud_rev[s] = []
      for predict_day in predict_days:
          
          model_config =  best_config[s][predict_day]
-         
-         #single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:model_config['corrDate']], 21, s)
-         #single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
-         #single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
+         single_stock = tv_gen._selectData2array_specialDate(f, corrDate[s][:model_config['corrDate']], 21, s)
+         single_stock, meta_v = f_extr.create_velocity(single_stock, meta)
+         single_stock, meta_ud = f_extr.create_ud_cont_2cls(single_stock, meta_v)
          train_data, train_label = get_data_label_pair(f, model_config, meta, predict_day)
          
-         single_stock_test = tv_gen._selectData2array(f, [s], ['20180516','20180525'])
+         single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180701'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
          single_stock_test, meta_ud = f_extr.create_ud_cont_2cls(single_stock_test, meta_v)
          test_data, test_label = get_data_label_pair_test(single_stock_test, model_config, meta_ud, predict_day,isShift)
@@ -211,6 +211,9 @@ for s in stock_list:
              print(test_data.shape, model_config['features'],model_config['days'])
              ud = gu.map_ud_2cls(model.predict(test_data)[0])
              predict_ud[s].append(ud)
+             
+             ud_rev = gu.map_ud_2cls_reverse(model.predict(test_data)[0])
+             predict_ud_rev[s].append(ud_rev)
          
          else:
              #********For test************
@@ -220,14 +223,12 @@ for s in stock_list:
              print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
                     
          
-         
-
-    
         
-         
-#import pickle
-#with open('./20180601/predict_ud_xgb_speicalDate_nsw_cscore_2cls.pkl', 'wb') as handle:
-#    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
+import pickle
+with open('./20180608/predict_ud_xgb_speicalDate_nsw_cscore_2cls.pkl', 'wb') as handle:
+    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)  
+with open('./20180608/predict_ud_xgb_speicalDate_nsw_cscore_2cls_rev.pkl', 'wb') as handle:
+    pickle.dump(predict_ud_rev, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
          
          

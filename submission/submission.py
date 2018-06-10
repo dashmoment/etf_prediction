@@ -6,10 +6,10 @@ import pickle
 #**********Write to submit file********************
     
 
-with open('./20180601/predict_price_mean.pkl', 'rb') as handle:
+with open('./20180608/predict_price_mean.pkl', 'rb') as handle:
     predict_price = pickle.load(handle)
 
-with open('./20180601/predict_ud_xgb_speicalDate_nsw_cscore_2cls.pkl', 'rb') as handle:
+with open('./20180608/predict_ud_xgb_speicalDate_nsw_cscore_2cls_rev.pkl', 'rb') as handle:
     predict_ud = pickle.load(handle)
 
 columns = ['ETFid', 'Mon_ud', 'Mon_cprice', 'Tue_ud', 'Tue_cprice',
@@ -29,4 +29,4 @@ for s in predict_price.keys():
     idx+=1
 
 df = df.set_index('ETFid') 
-df.to_csv('./20180601/submit_20180601_xgb_speicalDate_npw_cscore.csv', sep=',')
+df.to_csv('./20180608/submit_20180608_xgb_speicalDate_npw_cscore_rev.csv', sep=',')

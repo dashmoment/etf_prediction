@@ -26,11 +26,11 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-#stock_list = ['0050']
+stock_list = ['0050']
 
 date_range_normal = [
-                        ['20130101','20150601'],
-                        ['20150101','20170101'],
+                        #['20130101','20150601'],
+                        #['20150101','20170101'],
                         ['20130101','20180408'],
                     ]
 date_range_special = [['20130101','20180408']]
@@ -73,8 +73,8 @@ consider_lagdays = list(range(1,6)) #Contain # lagday information for a training
 config  = mc.model_config('xgb').get
 best_config = {}
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0608/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0608/all_meta_data_Nm_1_MinMax_120.pkl'
 #srcPath = '../../Data/all_feature_data_Nm_1_MinMax_94.pkl'
 #metaPath = '../../Data/all_meta_data_Nm_1_MinMax_94.pkl'
 *_,meta = gu.read_metafile(metaPath)
@@ -192,11 +192,20 @@ for s in stock_list:
     
    
     
-import pickle
-with open('../config/20180601/best_config_xgb_normal_cv_sc_v2.pkl', 'wb') as handle:
-    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
+#import pickle
+#with open('../config/20180601/best_config_xgb_normal_cv_sc_v2.pkl', 'wb') as handle:
+#    pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     
+#******get label for 5 days*******
+
+consider_lagday = 2
+predict_day_dict = {}
+for predict_day in range(1,6):
+    single_stock_test = tv_gen._selectData2array(f, [s], ['20180408','20180610'])
+    single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
+    single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
+    features_test, label_test = dp.get_data_from_normal_v2_train(single_stock_test, meta_ud, predict_day, consider_lagday, feature_list)
     
-    
+    predict_day_dict[predict_day] = label_test
 

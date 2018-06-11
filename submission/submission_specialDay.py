@@ -132,7 +132,7 @@ for s in stock_list:
          single_stock, meta_ud = f_extr.create_ud_cont(single_stock, meta_v)
          train_data, train_label = get_data_label_pair(single_stock, model_config, meta_ud)
          
-         single_stock_test = tv_gen._selectData2array(f, [s], ['20180414', '20180620'])
+         single_stock_test = tv_gen._selectData2array(f, [s], ['20180414', '20180701'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
          single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
          test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_ud, False)

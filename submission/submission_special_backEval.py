@@ -230,3 +230,33 @@ for s in stock_list:
 #with open('./20180608/predict_ud_xgb_speicalDate_nsw_cscore_2cls_rev.pkl', 'wb') as handle:
 #    pickle.dump(predict_ud_rev, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
+         
+         
+#********Blind test*********  
+srcPath_btest = '../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
+f_btest = tv_gen._load_data(srcPath_btest)
+
+label_ud_btest = {}
+
+for s in stock_list:
+    
+     single_stock_test = tv_gen._selectData2array(f_btest, [s], ['20180401','20180701'])
+     single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
+     single_stock_test, meta_ud = f_extr.create_ud_cont_2cls(single_stock_test, meta_v)
+     test_data, test_label = get_data_label_pair_test(single_stock_test, model_config, meta_ud, predict_day,False)
+     test_label = reduce_label(test_label)
+            
+     label_ud_btest[s] = [gu.map_ud_2cls(_label) for _label in test_label[-5:]]
+     
+performance = {}
+total_acc = 0
+total_wsum = 0
+weighting = np.array([0.1, 0.15, 0.2, 0.25, 0.3])
+for s in label_ud_btest.keys():
+    performance[s] = np.mean(np.array(np.equal(label_ud_btest[s], predict_ud[s]), np.float32))
+    performance['w_'+s] = np.sum(weighting*np.array(np.equal(label_ud_btest[s], predict_ud[s]), np.float32))
+    total_acc += np.sum(np.array(np.equal(label_ud_btest[s], predict_ud[s]), np.float32))
+    total_wsum += performance['w_'+s]
+performance['average'] = total_acc/90
+performance['w_sum'] = total_wsum*0.5
+     

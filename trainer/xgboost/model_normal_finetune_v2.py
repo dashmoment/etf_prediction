@@ -73,10 +73,10 @@ consider_lagdays = list(range(1,6)) #Contain # lagday information for a training
 config  = mc.model_config('xgb').get
 best_config = {}
 
-#srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-#metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-srcPath = '../../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath = '../../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+#srcPath = '../../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath = '../../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
 *_,meta = gu.read_metafile(metaPath)
 
 tv_gen = dp.train_validation_generaotr()
@@ -193,7 +193,7 @@ for s in stock_list:
    
     
 import pickle
-with open('../config/20180601/best_config_xgb_normal_cv_sc_v2.pkl', 'wb') as handle:
+with open('../config/20180525/best_config_xgb_normal_cv_sc_v2.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

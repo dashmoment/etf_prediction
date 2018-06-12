@@ -41,7 +41,7 @@ class model_dict:
         model_config = self.model_config
         return xgb.XGBClassifier( 
                                     learning_rate= model_config['model_config']['learning_rate'],
-                                    n_estimators=500,
+                                    n_estimators=model_config['model_config']['n_estimators'],
                                     max_depth = model_config['model_config']['max_depth'],
                                     #min_child_weight = model_config['model_config']['min_child_weight'],
                                     objective='multi:softmax', num_class=3)
@@ -60,23 +60,25 @@ class model_dict:
         return RandomForestClassifier(n_estimators = 500, max_depth=model_config['model_config']['max_depth'])
     
 
-#stock_list =  [
-#                '0050', '0051',  '0052', '0053', 
-#                '0054', '0055', '0056', '0057', 
-#                '0058', '0059', '006201', '006203', 
-#                '006204', '006208','00690', '00692',  
-#                '00701', '00713'
-#              ]
+stock_list =  [
+                '0050', '0051',  '0052', '0053', 
+                '0054', '0055', '0056', '0057', 
+                '0058', '0059', '006201', '006203', 
+                '006204', '006208','00690', '00692',  
+                '00701', '00713'
+              ]
 
 
-stock_list = ['0050']
+#stock_list = ['0050']
 predict_days  = list(range(1,6))
 
-#srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-#metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-mConfig_path = '../trainer/config/20180601/best_config_xgb_normal_cs_v2.pkl'
+srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+#srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+mConfig_path = '../trainer/config/20180525/best_config_xgb_normal_cv_sc_v2.pkl'
+#srcPath_btest = '../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
+srcPath_btest = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
 
 
 tv_gen = dp.train_validation_generaotr()
@@ -107,7 +109,7 @@ for s in stock_list:
          single_stock_test = tv_gen._selectData2array(f, [s], ['20180408', '20180610'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
          single_stock_test, meta_ud = f_extr.create_ud_cont(single_stock_test, meta_v)
-         test_data, test_label = dp.get_data_from_normal_v2_test(single_stock_test, meta_ud, predict_day, model_config, isShift=isShift)
+         test_data, _ = dp.get_data_from_normal_v2_test(single_stock_test, meta_ud, predict_day, model_config, isShift=isShift)
          #test_data, test_label = get_data_label_pair(single_stock_test, model_config, meta_ud, True)
                      
             
@@ -120,20 +122,11 @@ for s in stock_list:
              test_data = np.reshape(test_data[0,:], (1,-1))
              ud = gu.map_ud(model.predict(test_data)[0])
              predict_ud[s].append(ud)
-         
-         #********For test************
-         
-         else:
-             p = model.predict(test_data)   
-             print(p)
-             print(test_label)
-             print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
-                    
-         
+       
          
 
 #********Blind test*********  
-srcPath_btest = '../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
+
 f_btest = tv_gen._load_data(srcPath_btest)
 
 label_ud_btest = {}

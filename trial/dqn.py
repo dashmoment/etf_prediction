@@ -31,7 +31,7 @@ class dqn:
         
         self.epsilon = epsilon
         self.min_epsilon = min_epsilon
-        self.epsilon_decayrate = (epsilon - self.min_epsilon)/20
+        self.epsilon_decayrate = (epsilon - self.min_epsilon)/2000
         
         self.GAMMA = GAMMA
         self.learning_rate = learning_rate
@@ -71,7 +71,7 @@ class dqn:
     def train(self, memory, iteration): #memory: [ s, a, r , s']
         
          if self.epsilon >  self.min_epsilon:
-             if iteration%1000 == 0:
+             if iteration%10000 == 0:
                  self.epsilon = self.epsilon - self.epsilon_decayrate
              
         
@@ -105,9 +105,10 @@ class dqn:
 stock_list =  [
                 '0050', '0051',  '0052', '0053', 
                 '0054', '0055', '0056', '0057', 
-                '0058', '0059', '006201', '006203', 
-                '006204', '006208','00690', '00692',  
-                '00701', '00713'
+                '0058', '0059',
+                #'006201', '006203', 
+                #'006204', '006208','00690', '00692',  
+                #'00701', '00713'
               ]
 
 
@@ -115,8 +116,9 @@ stock_list =  [
 #metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
 srcPath = '/home/ubuntu/dataset/etf_prediction/0608/all_feature_data_Nm_1_MinMax_120.pkl'
 metaPath =  '/home/ubuntu/dataset/etf_prediction/0608/all_meta_data_Nm_1_MinMax_120.pkl'
+model_path = '/home/ubuntu/model/etf_prediction/dqn/dqn_3lnn_05s_d2.h5'
 
-predict_day = 1
+predict_day = 2
 consider_lagday = 5
 
 *_,meta = gu.read_metafile(metaPath)
@@ -161,14 +163,13 @@ label_test = np.concatenate(mlabels_test)
 memory_size = 128
 stage_exploration = 128
 iteration = 0
-total_iteration = 500000
+total_iteration = 1000000
 batchSize = 32
 
 memory = []
 loss_log = []
 reward_log = []
 
-model_path = '/home/ubuntu/model/etf_prediction/dqn/dqn_3lnn.h5'
 agent = dqn(epsilon = 0.1, 
             min_epsilon = 0.001,
             GAMMA = 0.99, 
@@ -230,6 +231,7 @@ plt.plot(loss_log)
 plt.figure()
 plt.plot(np.cumsum(reward_log))
 
+
 #***********DQN Test*************
 test_action = []
 test_reward = []
@@ -245,7 +247,7 @@ for i in tqdm(range(len(features_test))):
     test_reward.append(reward)
     
 print("Accuracy: ", np.sum(test_reward)/len(features_test))   
-
+plt.plot(np.reshape(test_reward, (-1)))
 
 
 

@@ -197,8 +197,7 @@ for s in stock_list:
          single_stock_test = tv_gen._selectData2array(f, [s], ['20180401','20180701'])
          single_stock_test, meta_v = f_extr.create_velocity(single_stock_test, meta)
          single_stock_test, meta_ud = f_extr.create_ud_cont_2cls(single_stock_test, meta_v)
-         test_data, test_label = get_data_label_pair_test(single_stock_test, model_config, meta_ud, predict_day,isShift)
-         test_label = reduce_label(test_label)
+         test_data, _ = get_data_label_pair_test(single_stock_test, model_config, meta_ud, predict_day,isShift)
          
          
          model = model_dict('xgb_2cls', model_config).get      
@@ -215,12 +214,7 @@ for s in stock_list:
              ud_rev = gu.map_ud_2cls_reverse(model.predict(test_data)[0])
              predict_ud_rev[s].append(ud_rev)
          
-         else:
-             #********For test************
-             p = model.predict(test_data)   
-             print(p)
-             print(test_label)
-             print("Validation Accuracy  {}: {} ".format(predict_day, accuracy_score(p, test_label)))
+        
                     
          
         

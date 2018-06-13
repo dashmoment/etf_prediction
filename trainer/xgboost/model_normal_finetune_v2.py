@@ -164,36 +164,36 @@ for s in stock_list:
                          fintue_predict = gsearch2b.predict(test_data)
                          fintune_testscore = accuracy_score(test_label, fintue_predict)
                          
-                         if fintune_testscore > accuracy_score(test_label, y_xgb_test):
+                         #if fintune_testscore > accuracy_score(test_label, y_xgb_test):
                          
-                             best_config[s][predict_day] = {
-                                                            'train acc': accuracy_score(train_label, y_xgb_train),
-                                                            'test_acc': accuracy_score(test_label, y_xgb_test),
-                                                            'days': consider_lagday,
-                                                            'cross_score':score,
-                                                            'features': feature_list,
-                                                            'period':period,
-                                                            'model_config':gsearch2b.best_params_,
-                                                            'fintune_score': gsearch2b.best_score_,
-                                                            'fintune_testscore': accuracy_score(test_label, fintue_predict)
-                                                            }
-                         else:    
-                             best_config[s][predict_day] = {
-                                                            'train acc': accuracy_score(train_label, y_xgb_train),
-                                                            'test_acc': accuracy_score(test_label, y_xgb_test),
-                                                            'days': consider_lagday,
-                                                            'cross_score':score,
-                                                            'features': feature_list,
-                                                            'period':period,
-                                                            'model_config':model.get_params(),
-                                                            'fintune_score': gsearch2b.best_score_,
-                                                            'fintune_testscore': accuracy_score(test_label, fintue_predict)
-                                                            }
+                         best_config[s][predict_day] = {
+                                                        'train acc': accuracy_score(train_label, y_xgb_train),
+                                                        'test_acc': accuracy_score(test_label, y_xgb_test),
+                                                        'days': consider_lagday,
+                                                        'cross_score':score,
+                                                        'features': feature_list,
+                                                        'period':period,
+                                                        'model_config':gsearch2b.best_params_,
+                                                        'fintune_score': gsearch2b.best_score_,
+                                                        'fintune_testscore': accuracy_score(test_label, fintue_predict)
+                                                        }
+#                         else:    
+#                             best_config[s][predict_day] = {
+#                                                            'train acc': accuracy_score(train_label, y_xgb_train),
+#                                                            'test_acc': accuracy_score(test_label, y_xgb_test),
+#                                                            'days': consider_lagday,
+#                                                            'cross_score':score,
+#                                                            'features': feature_list,
+#                                                            'period':period,
+#                                                            'model_config':model.get_params(),
+#                                                            'fintune_score': gsearch2b.best_score_,
+#                                                            'fintune_testscore': accuracy_score(test_label, fintue_predict)
+#                                                            }
     
    
     
 import pickle
-with open('../config/20180525/best_config_xgb_normal_cv_sc_v2.pkl', 'wb') as handle:
+with open('../config/20180525/best_config_xgb_normal_cvscore_v2.pkl', 'wb') as handle:
     pickle.dump(best_config, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     

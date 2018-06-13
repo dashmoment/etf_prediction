@@ -68,12 +68,6 @@ stock_list =  [
                 '00701', '00713'
               ]
 
-special_stock_list = [
-                           '006201', '006203', 
-                           '006204', '006208','00690', '00692',  
-                           '00701', '00713'        
-                     ]
-
 
 #stock_list = ['0050']
 predict_days  = list(range(1,6))
@@ -84,7 +78,7 @@ metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_
 #metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
 mConfig_path = '../trainer/config/20180525/best_config_xgb_normal_cv_sc_v2.pkl'
 #srcPath_btest = '../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
-srcPath_btest = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+srcPath_btest = '/home/ubuntu/dataset/etf_prediction/0608/all_feature_data_Nm_1_MinMax_120.pkl'
 
 
 tv_gen = dp.train_validation_generaotr()
@@ -126,21 +120,8 @@ for s in stock_list:
          
          if submission:
              test_data = np.reshape(test_data[0,:], (1,-1))
-             
-             if s not in special_stock_list:
-             
-                 if predict_day == 1 or predict_day==2 or predict_day==4 or predict_day==5:
-                     ud = gu.map_ud(2)
-                 if predict_day == 3:
-                     ud = gu.map_ud(0)
-            else:
-                if predict_day == 1 or predict_day==2 or predict_day==5:
-                     ud = gu.map_ud(2)
-                if predict_day == 3 or predict_day==4:
-                     ud = gu.map_ud(0)
-                
-            
-            predict_ud[s].append(ud)
+             ud = gu.map_ud(model.predict(test_data)[0])
+             predict_ud[s].append(ud)
        
          
 

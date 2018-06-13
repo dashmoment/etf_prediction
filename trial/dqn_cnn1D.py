@@ -13,7 +13,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 from keras.models import Sequential,clone_model, load_model
-from keras.layers import Dense, LSTM, Activation
+from keras.layers import Activation, Convolution1D, MaxPooling1D, Flatten, Dropout,Reshape
+from keras.layers import Dense, LSTM
 from keras.optimizers import SGD , Adam
 import random
 
@@ -51,11 +52,50 @@ class dqn:
     def build_model(self):
         
         model = Sequential()
-        model.add(LSTM(64, input_shape=(5, 58), return_sequences=True))
-        #model.add(LSTM(128, return_sequences=True))
-        model.add(LSTM(64))
+        model.add(Convolution1D(
+                nb_filter = 128,
+                kernel_size = 5,
+                padding='same',
+                input_shape=(58,5)    
+        ))
+        model.add(Activation('selu'))
+        #model.add(MaxPooling1D(stride=1))
+        model.add(Convolution1D(
+                nb_filter = 128,
+                kernel_size = 3,
+                padding='same'        
+        ))
+        model.add(Activation('selu'))
+        
+       
+        model.add(MaxPooling1D(stride=1))
+        model.add(Convolution1D(
+                nb_filter = 128,
+                kernel_size = 3,
+                padding='same'        
+        ))
+        model.add(Activation('selu'))
+        
+        model.add(Convolution1D(
+                nb_filter = 128,
+                kernel_size = 3,
+                padding='same'        
+        ))
+        model.add(Activation('selu'))
+        
+        model.add(Convolution1D(
+                nb_filter = 128,
+                kernel_size = 3,
+                padding='same'        
+        ))
+        model.add(Activation('selu'))
+        
+        model.add(Flatten())
+        model.add(Dropout(0.4))
+        model.add(Dense(128, activation='selu'))
         model.add(Dense(3))
         model.add(Activation('linear'))
+        
         adam = Adam(lr=self.learning_rate)
         model.compile(loss='mse',optimizer=adam)
         
@@ -97,7 +137,7 @@ class dqn:
              if len(state_t1[i]) == 0:
                  targets[i, action[i]] = reward[i]
              else:
-                 predict_t1 = self.model.predict(np.reshape(state_t1[i], (1, 5, 58))) 
+                 predict_t1 = self.model.predict(np.transpose(np.reshape(state_t1[i], (1, 5, 58)),(0,2,1))) 
                  targets[i, action[i]] = reward[i] + self.GAMMA * np.max(predict_t1, axis=-1)
                  
          self.loss = self.model.train_on_batch(state, targets)
@@ -110,11 +150,11 @@ class dqn:
                  
 
 stock_list =  [
-#                '0050', '0051',  '0052', '0053', 
-#                '0054', '0055', '0056', '0057', 
-#                '0058', '0059',
-                '006201', '006203', 
-                '006204', '006208','00690', '00692',  
+                #'0050', '0051',  '0052', '0053', 
+                #'0054', '0055', '0056', '0057', 
+                #'0058', '0059',
+                #'006201', '006203', 
+                #'006204', '006208','00690', '00692',  
                 '00701', '00713'
               ]
 
@@ -126,9 +166,9 @@ stock_list =  [
 #model_path = '../Data/dqn_model/dqn_lstm_d1.h5'
 srcPath = '/home/ubuntu/dataset/etf_prediction/0608/all_feature_data_Nm_1_MinMax_120.pkl'
 metaPath =  '/home/ubuntu/dataset/etf_prediction/0608/all_meta_data_Nm_1_MinMax_120.pkl'
-model_path = '/home/ubuntu/model/etf_prediction/dqn/dqn_3lnn_lstm_d2.h5'
+model_path = '/home/ubuntu/model/etf_prediction/dqn/dqn_3lnn_cnn_d4.h5'
 
-predict_day = 4
+predict_day = 5
 consider_lagday = 5
 
 *_,meta = gu.read_metafile(metaPath)
@@ -148,7 +188,7 @@ for s in stock_list:
                                                        consider_lagday, 
                                                        ['ratio', 'cont', 'ma', 'velocity'])
     
-    features = np.reshape(features, (-1, 5, 58))
+    features = np.transpose(np.reshape(features, (-1, 5, 58)),(0,2,1))
     mFeatures.append(features)
     mlabels.append(label)
 
@@ -159,7 +199,7 @@ for s in stock_list:
     features_test, label_test = dp.get_data_from_normal_v2_train(single_stock_test, meta_ud, predict_day, 
                                                                  consider_lagday, 
                                                                  ['ratio', 'cont', 'ma', 'velocity'])
-    features_test = np.reshape(features_test, (-1, 5, 58))
+    features_test = np.transpose(np.reshape(features_test, (-1, 5, 58)),(0,2,1))
     mFeatures_test.append(features_test)
     mlabels_test.append(label_test)
     
@@ -206,7 +246,7 @@ while iteration < total_iteration:
         label_t = label[iteration%len(features)]
         state_t1 = features[(iteration+1)%len(features)]
         
-    action = agent.action(np.reshape(state,(1,5,58)))   
+    action = agent.action(np.transpose(np.reshape(state, (1, 5, 58)),(0,2,1)))   
     #print(action)
     reward = np.reshape(np.array(np.equal(np.argmax(action), label_t), np.float32), (1,-1))
     
@@ -228,7 +268,7 @@ while iteration < total_iteration:
             state = features_test[i]
             label_t = label_test[i]
              
-            action = agent.action(np.reshape(state,(1,5,58)), False)   
+            action = agent.action(np.transpose(np.reshape(state, (1, 5, 58)),(0,2,1)), False)   
             reward = np.reshape(np.array(np.equal(np.argmax(action), label_t), np.float32), (1,-1))
             eval_reward.append(reward)
         print("train reward: ", np.sum(reward_log[-batchSize:])/batchSize)   
@@ -252,7 +292,7 @@ for i in tqdm(range(len(features_test))):
     state = features_test[i]
     label_t = label_test[i]
      
-    action = agent.action(np.reshape(state,(1,5,58)), False)   
+    action = agent.action(np.transpose(np.reshape(state, (1, 5, 58)),(0,2,1)), False)   
     reward = np.reshape(np.array(np.equal(np.argmax(action), label_t), np.float32), (1,-1))
     
     test_action.append(action)

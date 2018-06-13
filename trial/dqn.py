@@ -106,9 +106,9 @@ stock_list =  [
                 '0050', '0051',  '0052', '0053', 
                 '0054', '0055', '0056', '0057', 
                 '0058', '0059',
-                #'006201', '006203', 
-                #'006204', '006208','00690', '00692',  
-                #'00701', '00713'
+                '006201', '006203', 
+                '006204', '006208','00690', '00692',  
+                '00701', '00713'
               ]
 
 
@@ -116,9 +116,9 @@ stock_list =  [
 #metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
 srcPath = '/home/ubuntu/dataset/etf_prediction/0608/all_feature_data_Nm_1_MinMax_120.pkl'
 metaPath =  '/home/ubuntu/dataset/etf_prediction/0608/all_meta_data_Nm_1_MinMax_120.pkl'
-model_path = '/home/ubuntu/model/etf_prediction/dqn/dqn_3lnn_05s_d2.h5'
+model_path = '/home/ubuntu/model/etf_prediction/dqn/dqn_3lnn_05s.h5'
 
-predict_day = 2
+predict_day = 1
 consider_lagday = 5
 
 *_,meta = gu.read_metafile(metaPath)
@@ -177,7 +177,7 @@ agent = dqn(epsilon = 0.1,
             batchSize = batchSize,
             update_qmodel = 300,
             model_path = model_path, 
-            isReload = False)
+            isReload = True)
 
 pbar = tqdm(range(total_iteration))
 

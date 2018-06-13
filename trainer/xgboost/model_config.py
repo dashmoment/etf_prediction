@@ -36,7 +36,7 @@ class model_config:
                               'max_depth': np.arange(3, 10, 3),
                               #'subsample':np.arange(0.5, 1, 0.2),
                               #'min_child_weight': np.arange(1,6,3),
-                              'n_estimators': np.arange(400,700,100)
+                              #'n_estimators': np.arange(400,700,100)
                          },
                  'fit_param':True                        
               }

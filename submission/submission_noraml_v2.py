@@ -60,22 +60,25 @@ class model_dict:
         return RandomForestClassifier(n_estimators = 500, max_depth=model_config['model_config']['max_depth'])
     
 
-#stock_list =  [
-#                '0050', '0051',  '0052', '0053', 
-#                '0054', '0055', '0056', '0057', 
-#                '0058', '0059', '006201', '006203', 
-#                '006204', '006208','00690', '00692',  
-#                '00701', '00713'
-#              ]
+stock_list =  [
+                '0050', '0051',  '0052', '0053', 
+                '0054', '0055', '0056', '0057', 
+                '0058', '0059', '006201', '006203', 
+                '006204', '006208','00690', '00692',  
+                '00701', '00713'
+              ]
 
 
-stock_list = ['0050']
+#stock_list = ['0050']
 predict_days  = list(range(1,6))
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
-mConfig_path = '../trainer/config/20180601/best_config_xgb_normal_cs_v2.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath =  '/home/ubuntu/dataset/etf_prediction/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+#mConfig_path = '../trainer/config/20180601/best_config_xgb_normal_cs_v2.pkl'
 
+srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+mConfig_path = '../trainer/config/20180525/best_config_xgb_normal_cv_sc_v2.pkl'
 
 tv_gen = dp.train_validation_generaotr()
 *_,meta = gu.read_metafile(metaPath)
@@ -85,7 +88,7 @@ best_config = pickle.load(mConfig)
 
 predict_ud = {}
 
-submission = False
+submission = True
 if submission:
     isShift = False
 else:
@@ -117,7 +120,7 @@ for s in stock_list:
          if submission:
              test_data = np.reshape(test_data[0,:], (1,-1))
              ud = gu.map_ud(model.predict(test_data)[0])
-             predict_ud[s].append(ud)
+             predict_ud[s].append(1)
          
          #********For test************
          
@@ -133,19 +136,10 @@ for s in stock_list:
     
         
          
-#import pickle
-#with open('../submission/predict_ud_dow.pkl', 'wb') as handle:
-#    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
+import pickle
+with open('../submission/20180615/predict_ud_noraml_up.pkl', 'wb') as handle:
+    pickle.dump(predict_ud, handle, protocol=pickle.HIGHEST_PROTOCOL)       
          
          
-srcPath = '/home/ubuntu/dataset/etf_prediction/0601/all_feature_data_Nm_1_MinMax_120.pkl'  
-f_new = tv_gen._load_data(srcPath)     
-
-ud = []
-ud.append(f_new.loc['0050']['20180528'][-3:])
-ud.append(f_new.loc['0050']['20180529'][-3:])
-ud.append(f_new.loc['0050']['20180530'][-3:])
-ud.append(f_new.loc['0050']['20180531'][-3:])
-ud.append(f_new.loc['0050']['20180601'][-3:])
     
 

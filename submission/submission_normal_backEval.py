@@ -78,13 +78,15 @@ special_stock_list = [
 #stock_list = ['0050']
 predict_days  = list(range(1,6))
 
-srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
-metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
-#srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
-#metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+#srcPath = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+#metaPath =  '/home/ubuntu/dataset/etf_prediction/0525/all_meta_data_Nm_1_MinMax_120.pkl'
+#mConfig_path = '../trainer/config/20180525/best_config_xgb_normal_cv_sc_v2.pkl'
+#srcPath_btest = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
+
+srcPath = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
+metaPath = '../Data/0601/all_meta_data_Nm_1_MinMax_120.pkl'
+srcPath_btest = '../Data/0601/all_feature_data_Nm_1_MinMax_120.pkl'
 mConfig_path = '../trainer/config/20180525/best_config_xgb_normal_cv_sc_v2.pkl'
-#srcPath_btest = '../Data/0608/all_feature_data_Nm_1_MinMax_120.pkl'
-srcPath_btest = '/home/ubuntu/dataset/etf_prediction/0525/all_feature_data_Nm_1_MinMax_120.pkl'
 
 
 tv_gen = dp.train_validation_generaotr()
@@ -132,18 +134,17 @@ for s in stock_list:
                  if predict_day == 1 or predict_day==2 or predict_day==4 or predict_day==5:
                      ud = gu.map_ud(2)
                  if predict_day == 3:
-                     ud = gu.map_ud(0)
-            else:
-                if predict_day == 1 or predict_day==2 or predict_day==5:
                      ud = gu.map_ud(2)
-                if predict_day == 3 or predict_day==4:
-                     ud = gu.map_ud(0)
+             else:
+                if predict_day == 1 or predict_day==2 or predict_day==5 or predict_day==4:
+                     ud = gu.map_ud(2)
+                #if predict_day == 3 or predict_day==4:
+                if predict_day == 3:
+                     ud = gu.map_ud(2)
                 
             
-            predict_ud[s].append(ud)
+             predict_ud[s].append(ud)
        
-         
-
 #********Blind test*********  
 
 f_btest = tv_gen._load_data(srcPath_btest)
